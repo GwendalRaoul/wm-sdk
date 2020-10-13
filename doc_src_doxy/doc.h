@@ -5,6 +5,8 @@
 /**
 @mainpage Single-MCU Operation Overview
 
+This is a test, this text doesn't exist in version v1.1.0
+
 The Single-MCU operation allows an application to run on the same
 chip with Wirepas Mesh stack.
 
