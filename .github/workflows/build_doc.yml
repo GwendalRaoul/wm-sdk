@@ -3,6 +3,8 @@ name: Build and deploy doc
 on:
   push:
     branches: [ master ]
+  release:
+    types: [created]
 
 jobs:
   build:
@@ -16,8 +18,16 @@ jobs:
     - uses: actions/checkout@v2
     - name: Generate doc
       run: make doxygen
-    - name: Deploy doc
+    - name: Deploy doc for master
+      if: ${{ github.event_name == 'push' }}
       uses: peaceiris/actions-gh-pages@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./build/html
+    - name: Deploy doc for releases
+      if: ${{ github.event_name == 'release' }}
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./build/html
+        destination_dir: ${{ github.event.release.tag_name }}
