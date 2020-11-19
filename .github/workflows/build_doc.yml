@@ -32,3 +32,10 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./build/html
         destination_dir: ${{ github.event.release.tag_name }}
+    - name: Update list of release
+      uses: action/checkout@v2
+      with:
+        ref: 'gh-pages'
+        path: 'gh-pages'
+    - name: Test
+      run: ls gh-pages
