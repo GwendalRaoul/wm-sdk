@@ -33,7 +33,7 @@ jobs:
         publish_dir: ./build/html
         destination_dir: ${{ github.event.release.tag_name }}
     - name: Update list of release
-      uses: action/checkout@v2
+      uses: actions/checkout@v2
       with:
         ref: 'gh-pages'
         path: 'gh-pages'
