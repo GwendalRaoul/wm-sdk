@@ -32,10 +32,15 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./build/html
         destination_dir: ${{ github.event.release.tag_name }}
-    - name: Update list of release
+    - name: Checkout gh-pages branch
+      if: ${{ github.event_name == 'release' }}
       uses: actions/checkout@v2
       with:
         ref: 'gh-pages'
         path: 'gh-pages'
+    - name: Add new verson
+      if: ${{ github.event_name == 'release' }}
+      run: sed '/^\'latest\'/i \'${{ github.event.release.tag_name }}\'' gh-pages/select_version.js
     - name: Test
-      run: ls gh-pages
+      if: ${{ github.event_name == 'release' }}
+      run: cat gh-pages/select_version.js
