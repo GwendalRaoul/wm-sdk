@@ -40,7 +40,18 @@ jobs:
         path: 'gh-pages'
     - name: Add new verson
       if: ${{ github.event_name == 'release' }}
-      run: sed "/^'latest'/i '${{ github.event.release.tag_name }}'," gh-pages/select_version.js
+      run: sed "/^'latest'/i '${{ github.event.release.tag_name }}'," gh-pages/select_version.js > gh-pages/select_version.js
     - name: Test
       if: ${{ github.event_name == 'release' }}
       run: cat gh-pages/select_version.js
+    - name: Publish change
+      if: ${{ github.event_name == 'release' }} 
+      uses: EndBug/add-and-commit@v5
+      with:
+        add: select_version.js
+        author_name: GH Action build_doc
+        author_email: invalid@invalid.com
+        branch: gh-pages
+        cwd: 'gh-pages'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
