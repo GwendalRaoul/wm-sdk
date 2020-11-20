@@ -40,7 +40,7 @@ jobs:
         path: 'gh-pages'
     - name: Add new verson
       if: ${{ github.event_name == 'release' }}
-      run: sed '/^\'latest\'/i \'${{ github.event.release.tag_name }}\'' gh-pages/select_version.js
+      run: sed "/^'latest'/i '${{ github.event.release.tag_name }}'," gh-pages/select_version.js
     - name: Test
       if: ${{ github.event_name == 'release' }}
       run: cat gh-pages/select_version.js
