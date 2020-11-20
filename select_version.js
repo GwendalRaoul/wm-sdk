@@ -1,4 +1,8 @@
-const versions = ['master', 'v1.1.1', 'latest'];
+const versions = [
+'master',
+'v1.1.1',
+'latest'
+];
 
 source_path = "wm-sdk";
 
