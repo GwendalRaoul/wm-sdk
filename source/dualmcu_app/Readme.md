@@ -104,7 +104,7 @@ Attributes are small pieces of data that affect the way the stack works, or are
 used to inform the application of the state of the stack. Before the stack can
 be started in normal operation, a few critical attributes need to be configured
 properly (see section [“Required
-Configuration”](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#Required-Configuration)).  
+Configuration”](Required-Configuration)).  
 Attributes can either be read-only, readable and writable, or write-only. The
 attributes can also be persistent or non-persistent. If the attribute is
 persistent, its value will be retained over device power downs and stack stops,
@@ -272,6 +272,8 @@ the services. Table 3 list all the primitives and their primitive IDs.
 |         | MSAP-SCAN_NBORS.confirm            | 0xA1             |
 |         | MSAP-SCAN_NBORS.indication         | 0x22             |
 |         | MSAP-SCAN_NBORS.response           | 0xA2             |
+|         | MSAP-INSTALL_QUALITY.request       | 0x23             |
+|         | MSAP-INSTALL_QUALITY.confirm       | 0xA3             |
 |         | MSAP-SINK_COST_WRITE.request       | 0x38             |
 |         | MSAP-SINK_COST_WRITE.confirm       | 0xB8             |
 |         | MSAP-SINK_COST_READ.request        | 0x39             |
@@ -356,21 +358,12 @@ to set parameters. The DSAP-DATA_TX service includes the following primitives:
 #### DSAP-DATA_TX.request
 
 The DSAP-DATA_TX.request is issued by the application when it wants to send
-data. The DSAP-DATA.request frame is depicted in Figure 3.
-
-![](media/0048bbb0d46932a56b6fd76fe95c6443.png)
-
-  
-*Figure 3. DSAP-DATA_TX.request frame*
-
-  
-The DSAP-DATA_TX.request frame fields (solid border in the figure) are explained
-in Table 5
-
-*Table 5. DSAP-DATA_TX.request frame fields*
+data. Frame fields are described in the table below.
 
 | **Field Name**        | **Size** | **Valid Values**                             | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 |-----------------------|----------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*        | 1        | 0x01                                         | Identifier of DSAP-DATA_TX.request primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| *Frame ID*            | 1        | 0 – 255                                      | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | *PDUID*               | 2        | 0 – 65534                                    | PDU identifier decided by the application  The PDU ID can be used to keep track of APDUs processed by the stack as the same PDU ID is contained in a corresponding DSAP-DATA_TX.indication sent by the stack to the application. E.g. the application can keep the PDU in its own buffers until the successful transmission is indicated by the stack in DSAP-DATA_TX.indication.  PDU ID 65535 (0xFFFF) is reserved and should not be used.  Also see Note 1.                                                                                                                                                                                                                                                                                |
 | *SourceEndpoint*      | 1        | 0 – 239                                      | Source endpoint number  Also see Note 2.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | *DestinationAddress*  | 4        | 0 – 4294967295                               | Destination node address  Also see Note 3.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -379,6 +372,7 @@ in Table 5
 | *TXOptions*           | 1        | 00xx xxxx  (bitfield, where x can be 0 or 1) | The TX options are indicated as a bit field with individual bits defined as follows:   Bit 0 = 0: Do not generate DSAP-DATA_TX.indication  Bit 0 = 1: Generate DSAP-DATA_TX.indication  Bit 0 is used to register for receiving a DSAP-DATA_TX.indication after the PDU has been successfully transmitted to next hop node or cleared from the PDU buffers due to timeout or congestion. Also see Note 1.   Bit 1 = 1, Use unacknowledged CSMA-CA transmission method  Bit 1 = 0, Use normal transmission method.  See Note 4.   Bits 2-5: Hop limit. Maximum number of hops executed for packet to reach the destination. See Note 5.   Bits 6-7: Reserved  Here, bit 0 is the least significant bit and bit 7 is the most significant bit.  |
 | *APDULength*          | 1        | 1 – 102                                      | The length of the following APDU in octets                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | *APDU*                | 1 – 102  | \-                                           | Application payload                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| *CRC*                 | 2        | \-                                           | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 
 **Note 1:** These fields are used only locally for the communication between the
 application layer and the stack. They are not actually transmitted on the
@@ -418,48 +412,27 @@ address as destination node address but is discarded.
 #### DSAP-DATA_TX.confirm
 
 The DSAP-DATA_TX.confirm is issued by the stack as a response to the
-DSAP-DATA_TX.request. The DSAP-DATA_TX.confirm frame is depicted in Figure 4.
-
-![](media/6988b6b69e23e035da4e673a7f204cf7.png)
-
-  
-*Figure 4. DSAP-DATA_TX.confirm frame*
-
-  
-The DSAP-DATA_TX.confirm frame fields (solid border in the figure) are explained
-in Table 6.
-
-  
-*Table 6. DSAP-DATA_TX.confirm frame fields*
+DSAP-DATA_TX.request. Frame fields are described in the table below.
 
 | **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 |----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x81             | Identifier of DSAP-DATA_TX.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | *PDUID*        | 2        | 0 – 65534        | PDU identifier set by the application in the corresponding DSAP-DATA_TX.request  This field is only used for data TX requests where an indication is requested, i.e. TX options bit 0 is set (see field TXOptions in section [DSAP-DATA_TX.request](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#DSAP-DATA_TX.request)). If no indication is requested, the value of this field is undefined.                                                                                                                                                                                                                                   |
 | *Result*       | 1        | 0 – 10           | The return result of the corresponding DSAP-DATA_TX.request. The different values are defined as follows:  0 = Success: PDU accepted for transmission 1 = Failure: Stack is stopped 2 = Failure: Invalid QoS-parameter 3 = Failure: Invalid TX options-parameter 4 = Failure: Out of memory  5 = Failure: Unknown destination address 6 = Failure: Invalid APDU length-parameter 7 = Failure: Cannot send indication 8 = Failure: PDUID is already in use  9 = Failure: Invalid src/dest end-point  10 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
 | *Capacity*     | 1        | \-               | Number of PDUs that still can fit in the PDU buffer (see section [mPDUBufferCapacity](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#mPDUBufferCapacity) for details)                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 #### DSAP-DATA_TX_TT.request
 
 The DSAP-DATA_TX_TT.request is identical to the DSAP-DATA_TX.request, except
 there is one extra field for setting buffering delay to an initial no-zero
-value. The DSAP-DATA.request frame is depicted in Figure 5.
-
-  
-
-
-![](media/d4fa1fd5470893261af903e5e13b6572.png)
-
-  
-*Figure 5. DSAP-DATA_TX_TT.request frame*
-
-  
-The DSAP-DATA_TX_TT.request frame fields (solid border in the figure) are
-explained in Table 7.
-
-*Table 7. DSAP-DATA_TX_TT.request frame fields*
+value. Frame fields are described in the table below.
 
 | **Field Name**        | **Size** | **Valid Values**                             | **Description**                                                                                                                                                                 |
 |-----------------------|----------|----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*        | 1        | 0x1F                                         | Identifier of DSAP-DATA_TX_TT.request primitive                                                                                                                                 |
+| *Frame ID*            | 1        | 0 – 255                                      | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                |
 | *PDUID*               | 2        | 0 – 65534                                    | See description in chapter [DSAP-DATA_TX.request](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#DSAP-DATA_TX.request) |
 | *SourceEndpoint*      | 1        | 0 – 239                                      | See description in chapter [DSAP-DATA_TX.request](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#DSAP-DATA_TX.request) |
 | *DestinationAddress*  | 4        | 0 – 4294967295                               | See description in chapter [DSAP-DATA_TX.request](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#DSAP-DATA_TX.request) |
@@ -469,6 +442,7 @@ explained in Table 7.
 | *BufferingDelay*      | 4        | 0 – 4 294 967 295                            | The time the PDU has been in the application buffers before it was transmitted over API.  Expressed in units of 1/128th of a second.                                            |
 | *APDULength*          | 1        | 1 – 102                                      | See description in chapter [DSAP-DATA_TX.request](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#DSAP-DATA_TX.request) |
 | *APDU*                | 1 – 102  | \-                                           | See description in chapter [DSAP-DATA_TX.request](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#DSAP-DATA_TX.request) |
+| *CRC*                 | 2        | \-                                           | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                |
 
 #### DSAP-DATA_TX_TT.confirm
 
@@ -484,22 +458,13 @@ the DSAP-DATA_TX.request after the APDU of the corresponding
 DSAP-DATA_TX.request is successfully transmitted to next hop node or cleared
 from stack buffers due to timeout or congestion. The DSAP-DATA_TX.indication is
 sent only if the application registers it in the corresponding
-DSAP-DATA_TX.request's TX options parameter. The DSAP-DATA_TX.indication frame
-is depicted in Figure 6.
-
-![](media/71dbe5d9e8b14459465fbf72c4a04ce8.png)
-
-  
-*Figure 6. DSAP-DATA_TX.indication frame*
-
-  
-The DSAP-DATA_TX.indication frame fields (solid border in the figure) are
-explained in Table 8.
-
-*Table 8. DSAP-DATA_TX.indication frame fields*
+DSAP-DATA_TX.request's TX options parameter. Frame fields are described in the
+table below.
 
 | **Field Name**        | **Size** | **Valid Values** | **Description**                                                                                                                                                                  |
 |-----------------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*        | 1        | 0x02             | Identifier of DSAP-DATA_TX_TT.indication primitive                                                                                                                               |
+| *Frame ID*            | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                 |
 | *IndicationStatus*    | 1        | 0 or 1           | 0 = No other indications queued1 = More indications queued                                                                                                                       |
 | *PDUID*               | 2        | 0 – 65534        | PDU identifier set by the application in the corresponding DSAP-DATA_TX.request                                                                                                  |
 | *SourceEndpoint*      | 1        | 0 – 239          | Source endpoint number                                                                                                                                                           |
@@ -507,6 +472,7 @@ explained in Table 8.
 | *DestinationEndpoint* | 1        | 0 – 239          | Destination endpoint number                                                                                                                                                      |
 | *BufferingDelay*      | 4        | \-               | The time the PDU has been in the stack buffers before it was transmitted. Reported in units of *BufferingDelay / 128* seconds i.e. *BufferingDelay \* 7.8125* milliseconds.      |
 | *Result*              | 1        | 0 or 1           | The return result of the corresponding DSAP-DATA_TX.request. The different values are defined as follows:  0 = Success: PDU was successfully sent 1 = Failure: PDU was discarded |
+| *CRC*                 | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                 |
 
 ### DSAP-DATA_RX Service
 
@@ -523,23 +489,13 @@ primitives:
 #### DSAP-DATA_RX.indication
 
 The DSAP-DATA_RX.indication is issued by the stack when it receives data from
-the network destined to this node. The DSAP-DATA_RX.indication frame is depicted
-in Figure 7.
-
-![](media/b0d1461af560770d392d0fa108a5f921.png)
-
-  
-*Figure 7. DSAP-DATA_RX.indication frame*
-
-  
-The DSAP-DATA_RX.indication frame fields (thick border in the figure) are
-explained in Table 9.
-
-  
-*Table 9. DSAP-DATA_RX.indication frame fields*
+the network destined to this node. Frame fields are described in the table
+below.
 
 | **Field Name**        | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                              |
 |-----------------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*        | 1        | 0x03             | Identifier of DSAP-DATA_RX.indication primitive                                                                                                                                                                                                                                                                                                                                                                                              |
+| *Frame ID*            | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                             |
 | *IndicationStatus*    | 1        | 0 or 1           | 0 = No other indications queued1 = More indications queued                                                                                                                                                                                                                                                                                                                                                                                   |
 | *SourceAddress*       | 4        | 0 – 4294967295   | Source node address                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | *SourceEndpoint*      | 1        | 0 – 239          | Source endpoint number                                                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -549,6 +505,7 @@ explained in Table 9.
 | *TravelTime*          | 4        | \-               | Travel time of the PDU on the network. Reported in units of *TravelTime / 128* seconds i.e. *TravelTime \* 7.8125* milliseconds.                                                                                                                                                                                                                                                                                                             |
 | *APDULength*          | 1        | \-               | The length of the following APDU in octets                                                                                                                                                                                                                                                                                                                                                                                                   |
 | *APDU*                | 1 – 102  | \-               | Application payload                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| *CRC*                 | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                             |
 
 ## Management Services (MSAP)
 
@@ -604,38 +561,20 @@ that there are no pending indications at the moment.
 #### MSAP-INDICATION_POLL.request
 
 The MSAP-INDICATION_POLL.request is issued by the application layer when it
-wants to query stack indications. The MSAP-INDICATION_POLL.request frame is
-depicted in Figure 8.
-
-![](media/707c899f90c2480e9908439a2a98f320.png)
-
-  
-*Figure 8. MSAP-INDICATION_POLL.request frame*
-
-  
+wants to query stack indications.  
 The MSAP-INDICATION_POLL.request frame does not contain any payload.
 
 #### MSAP-INDICATION_POLL.confirm
 
 The MSAP-INDICATION_POLL.confirm is issued by the stack as a response to the
-MSAP-INDICATION_POLL.request. The MSAP-INDICATION_POLL.confirm frame is depicted
-in Figure 9.
-
-![](media/fb4b6cfe805688bf36359404448c9cba.png)
-
-  
-*Figure 9. MSAP-INDICATION_POLL.confirm frame*
-
-  
-The MSAP-INDICATION_POLL.confirm frame fields (solid border in the figure) are
-explained in Table 10.
-
-  
-*Table 10. MSAP-INDICATION_POLL.confirm frame fields*
+MSAP-INDICATION_POLL.request. Frame fields are described in the table below.
 
 | **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                            |
 |----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x84             | Identifier of MSAP-INDICATION_POLL.confirm primitive                                                                                                                                                                       |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                           |
 | *Result*       | 1        | 0 or 1           | The return result of the corresponding MSAP-INDICATION_POLL.request. The different values are defined as follows:  1 = Pending indications exist and stack will start sending the indication(s) 0 = No pending indications |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                           |
 
 ### MSAP-STACK_START Service
 
@@ -649,47 +588,29 @@ MSAP-STACK_START service includes the following primitives:
 #### MSAP-STACK_START.request
 
 The MSAP-STACK_START.request issued by the application layer when the stack
-needs to be started. The MSAP-STACK_START.request frame is depicted in Figure
-10.
-
-![](media/95904fdc313f2f9a75c7ac3e807db81b.png)
-
-*Figure 10. MSAP-STACK_START.request frame*
-
-  
-The MSAP-STACK_START.request frame fields (solid border in the figure) are
-explained in Table 11.
-
-  
-*Table 11. MSAP-STACK_START.request frame fields*
+needs to be started. Frame fields are described in the table below.
 
 | **Field Name** | **Size** | **Valid Values**                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                    |
 |----------------|----------|------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x05                               | Identifier of MSAP-STACK_START.request primitive                                                                                                                                                                                                                                                                                                                                                                   |
+| *Frame ID*     | 1        | 0 – 255                            | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                   |
 | *StartOptions* | 1        | 0000 000x  (where x can be 0 or 1) | The stack start options are indicated as a bit field with individual bits defined as follows:  Bit 0 = 0: Start stack with auto-start disabled, see Note, below Bit 0 = 1: Start stack with auto-start enabled Bit 1: Reserved Bit 2: Reserved Bit 3: Reserved Bit 4: Reserved Bit 5: Reserved Bit 6: Reserved  Bit 7: Reserved  , where bit 0 is the least significant bit and bit 7 is the most significant bit. |
+| *CRC*          | 2        | \-                                 | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                   |
 
 **The MSAP-STACK_START.confirm issued by the stack as a response to the
-MSAP-STACK_START.request. The MSAP-STACK_START.confirm frame is depicted in
-Figure 11**.
+MSAP-STACK_START.request.**
 
 #### MSAP-STACK_START.confirm
 
 The MSAP-STACK_START.confirm issued by the stack as a response to the
-MSAP-STACK_START.request. The MSAP-STACK_START.confirm frame is depicted in
-Figure 11.
-
-![](media/e72689426cd3fcf7c6ddcd9738083650.png)
-
-*Figure 11. MSAP-STACK_START.confirm frame*
-
-  
-The MSAP-STACK_START.confirm frame fields are explained in Table 12.
-
-  
-*Table 12. MSAP-STACK_START.confirm frame fields*
+MSAP-STACK_START.request. Frame fields are described in the table below.
 
 | **Field Name** | **Size** | **Valid Values**                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 |----------------|----------|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x85                               | Identifier of MSAP-STACK_START.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| *Frame ID*     | 1        | 0 – 255                            | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | *Result*       | 1        | 000x xxxx  (where x can be 0 or 1) | The return result of the corresponding MSAP-STACK_START.request. The result is indicated as a bit field with individual bits defined as follows:  0x00: Success: Stack started Bit 0 = 1: Failure: Stack remains stopped Bit 1 = 1: Failure: Network address missing Bit 2 = 1: Failure: Node address missing Bit 3 = 1: Failure: Network channel missing Bit 4 = 1: Failure: Role missing Bit 5 = 1: Failure: Application configuration data missing (valid only on sink device) Bit 6: Reserved  Bit 7 = 1: Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits))  , where bit 0 is the least significant bit and bit 7 is the most significant bit. |
+| *CRC*          | 2        | \-                                 | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 
 ### MSAP-STACK_STOP Service
 
@@ -716,36 +637,20 @@ has the following side effects:
 Note:A successful MSAP-STACK_STOP.request sets the MSAP auto-start attribute to
 disabled. For more information on the auto-start feature, see section
 [mAutostart](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#mAutostart).  
-The MSAP-STACK_STOP.request frame is depicted in Figure 12.
-
-![](media/1b93ff13070d39f98f5b8d59c79ac2b9.png)
-
-  
-*Figure 12. MSAP-STACK_STOP.request frame*
-
   
 The MSAP-STACK_STOP.request frame does not contain any payload.
 
 #### MSAP-STACK_STOP.confirm
 
 The MSAP-STACK_STOP.confirm issued by the stack as a response to the
-MSAP-STACK_STOP.request. The MSAP-STACK_STOP.confirm frame is depicted in Figure
-13.
-
-![](media/b41a5ea09b76007e2557552735edae17.png)
-
-  
-*Figure 13. MSAP-STACK_STOP.confirm frame*
-
-  
-The MSAP-STACK_STOP.confirm frame fields are explained in Table 13.
-
-  
-*Table 13. MSAP-STACK_STOP.confirm frame fields*
+MSAP-STACK_STOP.request. Frame fields are described in the table below.
 
 | **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                      |
 |----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x06             | Identifier of MSAP-STACK_STOP.confirm primitive                                                                                                                                                                                                                                                                                                                      |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                     |
 | *Result*       | 1        | 0, 1 or 128      | The return result of the corresponding MSAP-STACK_STOP.request. The different values are defined as follows:  0 = Success: Stack stopped 1 = Failure: Stack already stopped  128 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                     |
 
 **Note:** After device has sent the MSAP-STACK_STOP.confirm message, device is
 rebooted. This takes a while. During the rebooting, the device does not respond
@@ -770,23 +675,16 @@ service includes the following primitives:
 
 #### MSAP-STACK_STATE.indication
 
-The MSAP-STACK_STATE.indication is issued by the stack when it has booted. The
-MSAP-STACK_STATE.indication frame is depicted in Figure 14.
-
-![](media/e09977d0030313017c68bc62f7bf6547.png)
-
-  
-*Figure 14. MSAP-STACK_STATE.indication frame*
-
-  
-The MSAP-STACK_STATE.indication frame fields are explained in Table 14.
-
-*Table 14. MSAP-STACK_STATE.indication frame fields*
+The MSAP-STACK_STATE.indication is issued by the stack when it has booted. Frame
+fields are described in the table below.
 
 | **Field Name**     | **Size** | **Valid Values**                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 |--------------------|----------|------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*     | 1        | 0x07                               | Identifier of MSAP-STACK_STATE.indication primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| *Frame ID*         | 1        | 0 – 255                            | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | *IndicationStatus* | 1        | 0 or 1                             | 0 = No other indications queued1 = More indications queued                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | *Status*           | 1        | 0xxx xxxx  (where x can be 0 or 1) | The stack status is indicated as a bit field with individual bits defined as follows:  Bit 0 = 0: Stack running, see Note below Bit 0 = 1: Stack stopped Bit 1 = 0: Network address set Bit 1 = 1: Network address missing Bit 2 = 0: Node address set Bit 2 = 1: Node address missing Bit 3 = 0: Network channel set Bit 3 = 1: Network channel missing Bit 4 = 0: Role set Bit 4 = 1: Role missing Bit 5 = 0: Application configuration data valid Bit 5 = 1: Application configuration data missing (valid only on sink device) Bit 7: Reserved  , where bit 0 is the least significant bit and bit 7 is the most significant bit. |
+| *CRC*              | 2        | \-                                 | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 **Note:** If the stack sends an MSAP-STACK_STATE.indication where the status bit
 0 = 0, it means that the stack has auto-started. If the status bit 0 = 1, it
@@ -829,25 +727,17 @@ new values too often (e.g. more often than once per 30 minutes).
 #### MSAP-APP_CONFIG_DATA_WRITE.request
 
 The MSAP-APP_CONFIG_DATA_WRITE.request is issued by the application when it
-wants to set or change the network configuration data contents. The
-MSAP-APP_CONFIG_DATA_WRITE.request frame is depicted in Figure 15.
-
-![](media/d24832f98edc526739aeb690a9133f8d.png)
-
-  
-*Figure 15. MSAP-APP_CONFIG_DATA_WRITE.request frame*
-
-  
-The MSAP-APP_CONFIG_DATA_WRITE.request frame fields are explained in Table 15.
-
-  
-*Table 15. MSAP-APP_CONFIG_DATA_WRITE.request frame fields*
+wants to set or change the network configuration data contents. Frame fields are
+described in the table below.
 
 | **Field Name**           | **Size** | **Valid Values**                                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 |--------------------------|----------|----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*           | 1        | 0x3A                                               | Identifier of MSAP-APP_CONFIG_DATA_WRITE.request primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| *Frame ID*               | 1        | 0 – 255                                            | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | *SequenceNumber*         | 1        | 0 – 254, default value is 0                        | Sequence number for filtering old and already received application configuration data packets at the nodes.  The sequence number must be increment by 1 every time new configuration is written, i.e. new diagnostic data interval and/or new application configuration data is updated. See section [Sequence Numbers](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#Sequence-Numbers) for details.  A sequence number that is the current value of existing application configuration data is invalid. A value of 255 is invalid. Therefore, after value of 254, the next valid value is 0. |
 | *DiagnosticDataInterval* | 2        | 0, 30, 60, 120, 300, 600, 1800, default value is 0 | Diagnostic data transmission interval in seconds, i.e. how often the nodes on the network should send diagnostic PDUs.  If the value is 0, diagnostic data transmission is disabled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | *AppConfigData*          | X        | Raw hex data, default value is filled with 0x00    | Application configuration data. The format can be decided by the application.  Size of the field is defined by CSAP attribute cAppConfigDataSize (see section [cAppConfigDataSize](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cAppConfigDataSize))                                                                                                                                                                                                                                                                                                                                         |
+| *CRC*                    | 2        | \-                                                 | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 **Note:** It is recommended that the configuration data is not written too
 often, as new configuration data is always written to the non-volatile memory of
@@ -858,23 +748,15 @@ variables and unnecessary load to the network.
 #### MSAP-APP_CONFIG_DATA_WRITE.confirm
 
 The MSAP-APP_CONFIG_DATA_WRITE.confirm is issued by the stack in response to the
-MSAP-APP_CONFIG_DATA_WRITE.request. The MSAP-APP_CONFIG_DATA_WRITE.confirm frame
-is depicted in Figure 16.
-
-![](media/916b966a022e3a693942f0ac22ac71cf.png)
-
-  
-*Figure 16. MSAP-APP_CONFIG_DATA_WRITE.confirm frame*
-
-  
-The MSAP-APP_CONFIG_DATA_WRITE.confirm frame fields are explained in Table 17.
-
-  
-*Table 17. MSAP-APP_CONFIG_DATA_WRITE.confirm frame fields*
+MSAP-APP_CONFIG_DATA_WRITE.request. Frame fields are described in the table
+below.
 
 | **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 |----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0xBA             | Identifier of MSAP-APP_CONFIG_DATA_WRITE.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                     |
 | *Result*       | 1        | 0 – 4            | The return result of the corresponding MSAP-APP_CONFIG_DATA_WRITE.request. The different values are defined as follows:  0 = Success: New configuration written to sink's non-volatile memory and scheduled for transmission 1 = Failure: The node is not a sink  2 = Failure: Invalid DiagnosticDataInterval value 3 = Failure: Invalid SequenceNumber value  4 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                     |
 
 ### MSAP-APP_CONFIG_DATA_READ Service
 
@@ -893,39 +775,24 @@ configuration data that was last received from neighboring nodes.
 #### MSAP-APP_CONFIG_DATA_READ.request
 
 The MSAP-APP_CONFIG_DATA_READ.request is issued by the application when it wants
-to read the network configuration data contents. The
-MSAP-APP_CONFIG_DATA_READ.request frame is depicted in Figure 17.
-
-![](media/a56b9d3ca8e41291d941bfbf36217d4a.png)
-
-*Figure 17. MSAP-APP_CONFIG_DATA_READ.request frame*
-
-  
+to read the network configuration data contents.  
 The MSAP-APP_CONFIG_DATA_READ.request frame does not contain any payload.
 
 #### MSAP-APP_CONFIG_DATA_READ.confirm
 
 The MSAP-APP_CONFIG_DATA_READ.confirm is issued by the stack in response to the
-MSAP-APP_CONFIG_DATA_READ.request. The MSAP-APP_CONFIG_DATA_READ.confirm frame
-is depicted in Figure 18.
-
-![](media/2b169d4da14a051491041fbcd6b4c807.png)
-
-  
-*Figure 18. MSAP-APP_CONFIG_DATA_READ.confirm frame*
-
-  
-The MSAP-APP_CONFIG_DATA_READ.confirm frame fields are explained in Table 18.
-
-  
-*Table 18. MSAP-APP_CONFIG_DATA_READ.confirm frame fields*
+MSAP-APP_CONFIG_DATA_READ.request. Frame fields are described in the table
+below.
 
 | **Field Name**           | **Size** | **Valid Values**               | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 |--------------------------|----------|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*           | 1        | 0xBB                           | Identifier of MSAP-APP_CONFIG_DATA_READ.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| *Frame ID*               | 1        | 0 – 255                        | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | *Result*                 | 1        | 0 – 2                          | Return result for the corresponding MSAP-APP_CONFIG_DATA_READ.request. The different values are defined as follows:  0 = Success: Configuration received/set 1 = Failure: No configuration received/set  2 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits))  When used with nodes, indicates whether configuration has been received from neighbors. When used with sinks, indicates whether configuration has already been set (by using MSAP-APP_CONFIG_DATA_WRITE service). |
 | *SequenceNumber*         | 1        | 0 – 254                        | Sequence number for filtering old and already received application configuration data packets at the nodes. This parameter can be used by the application to decide if the configuration data has been updated. See section [Sequence Numbers](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#Sequence-Numbers) for details.  The returned value is never 255.                                                                                                                                                                                           |
 | *DiagnosticDataInterval* | 2        | 0, 30, 60, 120, 300, 600, 1800 | Diagnostic data transmission interval in seconds, i.e. how often the stack should send diagnostic PDUs  If the value is 0, diagnostic data transmission is disabled.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | *AppConfigData*          | X        | \-                             | Application configuration data. The format can be decided by the application.  Size of the field is defined by CSAP attribute cAppConfigDataSize (see section [cAppConfigDataSize](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cAppConfigDataSize))                                                                                                                                                                                                                                                                                                   |
+| *CRC*                    | 2        | \-                             | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 
 ### MSAP-APP_CONFIG_DATA_RX Service
 
@@ -955,11 +822,6 @@ Only exception is that the *Result*-parameter is replaced with the
 *indicationStatus* field (see section
 [MSAP-INDICATION_POLL.confirm](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-INDICATION_POLL.confirm)).
 
-![](media/2b169d4da14a051491041fbcd6b4c807.png)
-
-  
-*Figure 19. MSAP-APP_CONFIG_DATA_RX.indication frame*
-
 ### MSAP-ATTRIBUTE_WRITE Service
 
 The MSAP-ATTRIBUTE_WRITE service can be used by the application to write
@@ -976,46 +838,29 @@ Attributes](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas
 #### MSAP-ATTRIBUTE_WRITE.request
 
 The MSAP-ATTRIBUTE_WRITE.request is issued by the application when it wants to
-set or change the MSAP attributes. The MSAP-ATTRIBUTE_WRITE.request frame is
-depicted in Figure 20.
+set or change the MSAP attributes. Frame fields are described in the table
+below.
 
-![](media/0154460cad735d0f1ffd3b1c56d29277.png)
-
-  
-*Figure 20. MSAP-ATTRIBUTE_WRITE.request frame*
-
-  
-The MSAP-ATTRIBUTE_WRITE.request frame fields are explained in Table 19.
-
-  
-*Table 19. MSAP-ATTRIBUTE_WRITE.request frame fields*
-
-| **Field Name**    | **Size** | **Valid Values**                                                                                                                                                                 | **Description**                                                              |
-|-------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
-| *AttributeID*     | 2        | Depends on the attribute. See section [MSAP Attributes](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-Attributes) | The ID of the attribute that is written                                      |
-| *AttributeLength* | 1        |                                                                                                                                                                                  | The length (in octets) of the attribute that is written                      |
-| *AttributeValue*  | 1 – 16   |                                                                                                                                                                                  | The value that is written to the attribute specified by the set attribute ID |
+| **Field Name**    | **Size** | **Valid Values**                                                                                                                                                                 | **Description**                                                                                                                                                  |
+|-------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*    | 1        | 0x0B                                                                                                                                                                             | Identifier of MSAP-ATTRIBUTE_WRITE.request primitive                                                                                                             |
+| *Frame ID*        | 1        | 0 – 255                                                                                                                                                                          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *AttributeID*     | 2        | Depends on the attribute. See section [MSAP Attributes](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-Attributes) | The ID of the attribute that is written                                                                                                                          |
+| *AttributeLength* | 1        |                                                                                                                                                                                  | The length (in octets) of the attribute that is written                                                                                                          |
+| *AttributeValue*  | 1 – 16   |                                                                                                                                                                                  | The value that is written to the attribute specified by the set attribute ID                                                                                     |
+| *CRC*             | 2        | \-                                                                                                                                                                               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
 
 #### MSAP-ATTRIBUTE_WRITE.confirm
 
 The MSAP-ATTRIBUTE_WRITE.confirm is issued by the stack in response to the
-MSAP-ATTRIBUTE_WRITE.request. The MSAP-ATTRIBUTE_WRITE.confirm frame is depicted
-in Figure 21.
-
-![](media/a564f6011cb678557861fb22b77219ee.png)
-
-  
-*Figure 21. MSAP-ATTRIBUTE_WRITE.confirm frame*
-
-  
-The MSAP-ATTRIBUTE_WRITE.confirm frame fields are explained in Table 20.
-
-  
-*Table 20. MSAP-ATTRIBUTE_WRITE.confirm frame fields*
+MSAP-ATTRIBUTE_WRITE.request. Frame fields are described in the table below.
 
 | **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                       |
 |----------------|----------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x8B             | Identifier of MSAP-ATTRIBUTE_WRITE.confirm primitive                                                                                                                                                                                                                                                                                                                                                  |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                      |
 | *Result*       | 1        | 0 – 6            | The return result of the corresponding MSAP-ATTRIBUTE_WRITE.request. The different values are defined as follows:  0 = Success 1 = Failure: Unsupported attribute ID 2 = Failure: Stack in invalid state to write attribute 3 = Failure: Invalid attribute length 4 = Failure: Invalid attribute value  5 = Reserved  6 = Failure: Access denied (e.g. attribute read prevented by feature lock bits) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                      |
 
 ### MSAP-ATTRIBUTE_READ Service
 
@@ -1030,47 +875,29 @@ includes the following primitives:
 #### MSAP-ATTRIBUTE_READ.request
 
 The MSAP-ATTRIBUTE_READ.request is issued by the application when it wants to
-read the MSAP attributes. The MSAP-ATTRIBUTE_READ.request frame is depicted in
-Figure 22.
+read the MSAP attributes. Frame fields are described in the table below.
 
-![](media/338f206f5e74e226799603e0af1c395b.png)
-
-  
-*Figure 22. MSAP-ATTRIBUTE_READ.request frame*
-
-  
-The MSAP-ATTRIBUTE_READ.request frame fields are explained in Table 21.
-
-  
-*Table 21. MSAP-ATTRIBUTE_READ.request frame fields*
-
-| **Field Name** | **Size** | **Valid Values**                                                                                                                                                                 | **Description**                      |
-|----------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------|
-| *AttributeID*  | 2        | Depends on the attribute. See section [MSAP Attributes](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-Attributes) | The ID of the attribute that is read |
+| **Field Name** | **Size** | **Valid Values**                                                                                                                                                                 | **Description**                                                                                                                                                  |
+|----------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x0C                                                                                                                                                                             | Identifier of MSAP-ATTRIBUTE_READ.request primitive                                                                                                              |
+| *Frame ID*     | 1        | 0 – 255                                                                                                                                                                          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *AttributeID*  | 2        | Depends on the attribute. See section [MSAP Attributes](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-Attributes) | The ID of the attribute that is read                                                                                                                             |
+| *CRC*          | 2        | \-                                                                                                                                                                               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
 
 #### MSAP-ATTRIBUTE_READ.confirm
 
 The MSAP- ATTRIBUTE_READ.confirm is issued by the stack in response to the
-MSAP-ATTRIBUTE_READ.request. The MSAP-ATTRIBUTE_READ.confirm frame is depicted
-in Figure 23.
-
-![](media/97ff3ef5e5d4725ba5ff5588bf90dac9.png)
-
-  
-*Figure 23. MSAP-ATTRIBUTE_READ.confirm frame*
-
-  
-The MSAP-ATTRIBUTE_READ.confirm frame fields are explained in Table 22.
-
-  
-*Table 22. MSAP-ATTRIBUTE_READ.confirm frame fields*
+MSAP-ATTRIBUTE_READ.request. Frame fields are described in the table below.
 
 | **Field Name**    | **Size** | **Valid Values**                                                                                                                                                                  | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 |-------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*    | 1        | 0x8C                                                                                                                                                                              | Identifier of MSAP-ATTRIBUTE_READ.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                           |
+| *Frame ID*        | 1        | 0 – 255                                                                                                                                                                           | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                              |
 | *Result*          | 1        | 0 – 6                                                                                                                                                                             | The return result of the corresponding MSAP-ATTRIBUTE_READ.request. The different values are defined as follows:  0 = Success 1 = Failure: Unsupported attribute ID 2 = Failure: Stack in invalid state to read attribute 4 = Failure: Invalid attribute value or attribute value not yet set 5 = Failure: Write-only attribute (e.g. the encryption and authentication keys) 6 = Failure: Access denied (e.g. attribute read prevented by feature lock bits) |
 | *AttributeID*     | 2        | Depends on the attribute. See section [MSAP Attributes](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-Attributes). | The ID of the attribute that is read                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | *AttributeLength* | 1        |                                                                                                                                                                                   | The length (in octets) of the attribute that is read                                                                                                                                                                                                                                                                                                                                                                                                          |
 | *AttributeValue*  | 1 – 16   |                                                                                                                                                                                   | The value of the read attribute specified by the set attribute ID. This value of the attribute is only present if *Result* is 0 (Success).                                                                                                                                                                                                                                                                                                                    |
+| *CRC*             | 2        | \-                                                                                                                                                                                | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                              |
 
 ### MSAP-GET_NBORS Service
 
@@ -1081,61 +908,36 @@ node is located.
 #### MSAP-GET_NBORS.request
 
 MSAP-GET_NBORS.request is issued by the application layer to query information
-about neighboring nodes. The MSAP-GET_NBORS.request frame is depicted in Figure
-24. It contains no payload.
-
-![](media/94f4b6fe71625d4ffd7b18b4848f3f88.png)
-
-  
-*Figure 24. MSAP-GET_NBORS.request frame*
+about neighboring nodes. It contains no payload.
 
 #### MSAP-GET_NBORS.confirm
 
 MSAP-GET_NBORS.confirm is issued by the stack as a response to the
-MSAP-GET_NBORS.request. The MSAP-GET_NBORS.confirm frame is depicted in Figure
-25 and Figure 26.  
+MSAP-GET_NBORS.request.  
 Information for a maximum of eight neighbors is contained within one
 MSAP-GET_NBORS.confirm frame. The frame size does not change. If number of
 neighbors is less than eight, remaining data in the frame is undefined. If
 access is denied (see section
 [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits))
-a block of zeros is returned.
-
-  
-
-
-![](media/74502598b5d5f9d0b2921cd04d40c349.png)
-
-  
-*Figure 25. MSAP-GET_NBORS.confirm frame*
-
-  
+a block of zeros is returned.  
 The neighbor info frame contains information for a maximum of eight neighbors.
-This information is depicted in Figure 26.
+Frame fields are described in the table below.
 
-![](media/f988ace2f845eb482ae4ecd1ba69c4eb.png)
-
-  
-*Figure 26. MSAP-GET_NBORS.confirm neighbor info*
-
-  
-The MSAP-GET_NBORS.confirm frame fields are explained in Table 23.
-
-  
-*Table 23. MSAP-GET_NBORS.confirm frame fields*
-
-| **Field Name**      | **Size** | **Valid Values**                    | **Description**                                                                                                                                                 |
-|---------------------|----------|-------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *NumberOfNeighbors* | 1        | 0 – 8                               | Number of neighbors' information returned. 0 if there are no neighbors.                                                                                         |
-| *NeighborAddress*   | 4        | 0 – 4294967295                      | Address of the neighbor node                                                                                                                                    |
-| *LinkReliability*   | 1        | 0 – 255                             | Link reliability to the neighboring node. Scaled so that 0 = 0 %, 255 = 100 %                                                                                   |
-| *NormalizedRSSI*    | 1        | 0 – 255                             | Received signal strength, compensated with transmission power. Larger value means better the signal.  0: No signal 1: Signal heard barely\>50: Good signal      |
-| *Cost*              | 1        | 1 – 255                             | Route cost to the sink via this neighbor. Value 255 indicates that a neighbor has no route to a sink.                                                           |
-| *Channel*           | 1        | 1 – CSAP attribute *cChannelLimits* | Radio channel used by the neighbor                                                                                                                              |
-| *NeighborType*      | 1        | 0 – 2                               | Type of neighbor  0: Neighbor is next hop cluster, i.e. used as a route to sink 1: Neighbor is a member of this node 2: Neighbor is a cluster from network scan |
-| *TxPower*           | 1        | 0 – X                               | Power level used for transmission  0: Lowest power  X: Highest power (depending on the stack profile)                                                           |
-| *RxPower*           | 1        | 0 – X                               | Received power level  0: Lowest power  X: Highest power (depending on the stack profile)                                                                        |
-| *LastUpdate*        | 2        | 0 – 65535                           | Amount of seconds since these values were last updated                                                                                                          |
+| **Field Name**      | **Size** | **Valid Values**                    | **Description**                                                                                                                                                  |
+|---------------------|----------|-------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*      | 1        | 0xA0                                | Identifier of MSAP-GET_NBORS.confirm primitive                                                                                                                   |
+| *Frame ID*          | 1        | 0 – 255                             | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *NumberOfNeighbors* | 1        | 0 – 8                               | Number of neighbors' information returned. 0 if there are no neighbors.                                                                                          |
+| *NeighborAddress*   | 4        | 0 – 4294967295                      | Address of the neighbor node                                                                                                                                     |
+| *LinkReliability*   | 1        | 0 – 255                             | Link reliability to the neighboring node. Scaled so that 0 = 0 %, 255 = 100 %                                                                                    |
+| *NormalizedRSSI*    | 1        | 0 – 255                             | Received signal strength, compensated with transmission power. Larger value means better the signal.  0: No signal 1: Signal heard barely\>50: Good signal       |
+| *Cost*              | 1        | 1 – 255                             | Route cost to the sink via this neighbor. Value 255 indicates that a neighbor has no route to a sink.                                                            |
+| *Channel*           | 1        | 1 – CSAP attribute *cChannelLimits* | Radio channel used by the neighbor                                                                                                                               |
+| *NeighborType*      | 1        | 0 – 2                               | Type of neighbor  0: Neighbor is next hop cluster, i.e. used as a route to sink 1: Neighbor is a member of this node 2: Neighbor is a cluster from network scan  |
+| *TxPower*           | 1        | 0 – X                               | Power level used for transmission  0: Lowest power  X: Highest power (depending on the stack profile)                                                            |
+| *RxPower*           | 1        | 0 – X                               | Received power level  0: Lowest power  X: Highest power (depending on the stack profile)                                                                         |
+| *LastUpdate*        | 2        | 0 – 65535                           | Amount of seconds since these values were last updated                                                                                                           |
+| *CRC*               | 2        | \-                                  | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
 
 ### MSAP-SCAN_NBORS Service
 
@@ -1157,30 +959,1416 @@ service includes the following primitives:
 #### MSAP-SCAN_NBORS.request
 
 MSAP-SCAN_NBORS.request is issued by the application when it starts to
-measurement all neighbors. The MSAP-SCAN_NBORS.request frame is depicted in
-Figure 24. It contains no payload.
-
-![](media/94f4b6fe71625d4ffd7b18b4848f3f88.png)
-
-  
-*Figure 27. MSAP-SCAN_NBORS.request frame*
+measurement all neighbors. It contains no payload.
 
 #### MSAP-SCAN_NBORS.confirm
 
 This confirm tells result which is always success. After application has asked
-to scan neighbors so stack code use signal to handle it.
-
-![](media/02a83d958d64257329639bc881598c46.png)
-
-  
-*Figure 28. MSAP-SCAN_NBORS.confirm frame*
-
-  
-The MSAP-SCAN_NBORS.confirm frame fields are explained in following table.
-
-  
-*Table 24. MSAP_SCAN_NBORS.confirm frame fields*
+to scan neighbors so stack code use signal to handle it. Frame fields are
+described in the table below.
 
 | **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                            |
 |----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0xA1             | Identifier of MSAP-SCAN_NBORS.confirm primitive                                                                                                                                                                                                                                                                            |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                           |
 | *Result*       | 1        | 0 – 2            | The return result of the corresponding MSAP-SCAN_NBORS.confirm.  0 = Success  1 = Failure: Stack in invalid state, i.e. not running  2 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                           |
+
+#### MSAP-SCAN_NBORS.indication
+
+The MSAP-SCAN_NBORS.indication is issued by the stack as an asynchronous reply
+for the MSAP-SCAN_NBORS.request after to scan neighbors is finished. Frame
+fields are described in the table below.
+
+| **Field Name**     | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
+|--------------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*     | 1        | 0x22             | Identifier of MSAP-SCAN_NBORS.indication primitive                                                                                                               |
+| *Frame ID*         | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *IndicationStatus* | 1        | 0 or 1           | 0 = No other indications queued  1 = More indications queued                                                                                                     |
+| *ScanReady*        | 1        | 1                | 1 = Scan is done                                                                                                                                                 |
+| *CRC*              | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+
+### MSAP-GET_INSTALL_QUALITY service
+
+This service can be used to query the nodes installation quality, which
+indicates the quality of the nodes installation location. Refer to the Wirepas
+Installation Quality API Application note for more information.
+
+#### MSAP-GET_INSTALL_QUALITY.request
+
+This frame by the application layer to query information about neighboring
+nodes. It contains no payload.
+
+#### MSAP-GET_INSTALL_QUALITY.request
+
+### MSAP-SINK_COST Service
+
+This service can be used to inform the sink that the backend communication has
+problems. In order to keep the entire network operational, other nodes can be
+forced to use other sinks with working backend communication.
+
+#### MSAP-SINK_COST_WRITE.request
+
+This command shall set the sink cost to new value. The higher the cost value,
+more this sink shall be avoided. Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
+|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x8B             | Identifier of MSAP-ATTRIBUTE_WRITE.confirm primitive                                                                                                             |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *Cost*         | 1        | 0 – 254          | Value of 0 means that connection is good and no additional penalty is sent to sink usage.  Value of 254 includes maximum penalty                                 |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+
+#### MSAP-SINK_COST_WRITE.confirm
+
+This response tells whether writing of the penalty is successful or not. Frame
+fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                         |
+|----------------|----------|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0xB8             | Identifier of MSAP-SINK_COST_WRITE.confirm primitive                                                                                                                                                                                                                                                                                                    |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                        |
+| *Result*       | 1        | 0 – 2            | The return result of the corresponding MSAP-ATTRIBUTE_WRITE.request. The different values are defined as follows:  0 = Success 1 = Failure: Device is not a sink  2 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                        |
+
+#### MSAP-SINK_COST_READ.request
+
+This command is used to query the currently set additional penalty for the sink
+usage.
+
+#### MSAP-SINK_COST_READ.confirm
+
+This response tells currently set additional penalty for the sink usage. Frame
+fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                         |
+|----------------|----------|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0xB9             | Identifier of MSAP-SINK_COST_READ.confirm primitive                                                                                                                                                                                                                                                                                                     |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                        |
+| *Result*       | 1        | 0 – 2            | The return result of the corresponding MSAP-ATTRIBUTE_WRITE.request. The different values are defined as follows:  0 = Success 1 = Failure: Device is not a sink  2 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *Cost*         | 1        | 0 – 254          | Additional penalty set for the sink                                                                                                                                                                                                                                                                                                                     |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                        |
+
+### MSAP-SCRATCHPAD Services
+
+Wirepas Mesh stack support a feature called Over-The-Air-Programming (OTAP).
+Nodes reserve any unused non-volatile memory as storage for large bulk data.
+This area is called the OTAP scratchpad. OTAP scratchpad can be used to
+distribute new firmware, applications and other large pieces of data to all
+nodes on the network. Nodes keep track of the scratchpad sequence numbers of
+their neighbors, and coordinate the distribution of the most recent OTAP
+scratchpad to all nodes.  
+Any node can be used to introduce a new OTAP scratchpad to the network, but the
+stack must be in the stopped state while writing the scratchpad data. After the
+stack is started, the OTAP transfer will begin (unless disabled for this node).  
+Note: It is recommended that the scratchpad data is not rewritten too often, as
+new data is always written to the non-volatile memory of the sink and
+distributed to all nodes on the network. This can cause unnecessary wearing of
+the non-volatile memory and unnecessary load to the network.
+
+#### MSAP-SCRATCHPAD_START.request
+
+The MSAP-SCRATCHPAD_START.request is issued by the application when it wants to
+clear and rewrite the Scratchpad contents of this node. Any previous scratchpad
+contents are erased.  
+Note:
+
+-   This request is only valid when the stack is in the stopped state
+
+-   The length of the scratchpad in bytes must be divisible by 16
+
+Frame fields are described in the table below.
+
+| **Field Name**             | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+|----------------------------|----------|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*             | 1        | 0x17             | Identifier of MSAP-SCRATCHPAD_START.request primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| *Frame ID*                 | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| *ScratchpadLengthInBytes*  | 4        | 96 –             | Total number of bytes of OTAP scratchpad data  The length must be divisible by 16, or the request will fail.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| *ScratchpadSequenceNumber* | 1        | 0 – 255          | Sequence number for filtering old scratchpad contents at the nodes  The sequence number must be increment by 1 every time a new OTAP scratchpad is written. See section [Sequence Numbers](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#Sequence-Numbers) for details.  The following sequence numbers are considered special:  The sequence number must be different to the sequence number of the scratchpad already present in the node  A value of 255 is means that any scratchpad from the network will override this scratchpad  A value of 0 disables OTAP for this node |
+| *CRC*                      | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+
+#### MSAP-SCRATCHPAD_START.confirm
+
+The MSAP-SCRATCHPAD_START.confirm is issued by the stack in response to the
+MSAP-SCRATCHPAD_START.request. Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x97             | Identifier of MSAP-SCRATCHPAD_START.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                   |
+| *Result*       | 1        | 0 – 4            | The return result of the corresponding MSAP-SCRATCHPAD_START.request. The different values are defined as follows:  0 = Success: Scratchpad has been erased and the node is waiting for new data to be written  1 = Failure: Stack in invalid state, i.e. not stopped 2 = Failure: Invalid ScratchPadLengthInBytes value, e.g. too big or not divisible by 16  3 = Reserved  4 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                   |
+
+#### MSAP-SCRATCHPAD_BLOCK.request
+
+Blocks of data for the OTAP scratchpad are written with
+MSAP-SCRATCHPAD_BLOCK.request. Number of bytes of data to write can vary, with
+the following limitations:
+
+-   Number of bytes must be a multiple of four
+
+-   There may not be gaps in the blocks of data written and data from previously
+    written blocks may not be overwritten
+
+-   The total number of bytes written with consecutive MSAP block requests must
+    be equal to the number of bytes indicated in the preceding
+    MSAP-SCRATCHPAD_START.request
+
+Frame fields are described in the table below.
+
+| **Field Name**  | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
+|-----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*  | 1        | 0x18             | Identifier of MSAP-SCRATCHPAD_BLOCK.request primitive                                                                                                            |
+| *Frame ID*      | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *StartAddress*  | 4        | 0 –              | Start address of scratchpad data  Overlapping previous data or leaving gaps is not permitted.                                                                    |
+| *NumberOfBytes* | 1        | 1 – 112          | Number of bytes of scratchpad data  Must be a multiple of four bytes.                                                                                            |
+| *Bytes*         | 1 - 112  | \-               | Bytes of scratchpad data                                                                                                                                         |
+| *CRC*           | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+
+#### MSAP-SCRATCHPAD_BLOCK.confirm
+
+The MSAP-SCRATCHPAD_BLOCK.confirm is issued by the stack in response to the
+MSAP-SCRATCHPAD_BLOCK.request. Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+|----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x98             | Identifier of MSAP-SCRATCHPAD_BLOCK.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                 |
+| *Result*       | 1        | 0 – 7            | The return result of the corresponding MSAP-SCRATCHPAD_BLOCK.request. The different values are defined as follows:  0 = Success: Block was accepted1 = Success: All data received and seems to be OK 2 = Failure: All data received but error in data 3 = Failure: Stack in invalid state, i.e. not stopped 4 = Failure: No scratchpad start request was given 5 = Failure: Start address is invalid 6 = Failure: Number of bytes is invalid 7 = Failure: Does not seem to be a valid scratchpad |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                 |
+
+**Note:** Any other result except 0 (block was accepted) means that writing the
+scratchpad has been terminated and another MSAP-SCRATCHPAD_START.request must be
+issued before another MSAP-SCRATCHPAD_BLOCK.request can be carried out.
+
+#### MSAP-SCRATCHPAD_STATUS.request
+
+MSAP-SCRATCHPAD_STATUS.request is issued by the application layer to query
+information about the OTAP scratchpad present in the node, as well as
+information about the scratchpad that produced the currently running stack
+firmware.  
+The MSAP-SCRATCHPAD_STATUS.request frame does not contain any payload.
+
+#### MSAP-SCRATCHPAD_STATUS.confirm
+
+The MSAP-SCRATCHPAD_STATUS.confirm is issued by the stack in response to the
+MSAP-SCRATCHPAD_STATUS.request. There are several kinds of information in the
+status confirmation:
+
+-   Information about the OTAP scratchpad currently present in the node: its
+    length, CRC, sequence number, etc.
+
+-   Information about the scratchpad that produced the currently running
+    firmware: its length, CRC, sequence number, etc.
+
+-   Information about the currently running stack firmware: version numbers
+
+By keeping track of several identifying pieces of information about the OTAP
+scratchpad that produced the currently running stack firmware, it is possible to
+unambiguously determine how the stack firmware ended up in the node.  
+If access is denied (see section
+[cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits))
+a block of zeros is returned. Frame fields are described in the table below.
+
+| **Field Name**                      | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                   |
+|-------------------------------------|----------|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*                      | 1        | 0x99             | Identifier of MSAP-SCRATCHPAD_STATUS.confirm primitive                                                                                                                                                                                                                                                                            |
+| *Frame ID*                          | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                  |
+| *ScratchpadLengthInBytes*           | 4        | 0 or 96 –        | Length of the OTAP scratchpad present in the node  Length is 0 if there is no scratchpad present in the node                                                                                                                                                                                                                      |
+| *ScratchpadCrc*                     | 2        | 0 – 65535        | CRC of the OTAP scratchpad present in the node  CRC is 0 if there is no scratchpad present in the node                                                                                                                                                                                                                            |
+| *ScratchpadSequenceNumber*          | 1        | 0 – 255          | Sequence number of the OTAP scratchpad present in the node  Sequence number is 0 if there is no scratchpad present in the node                                                                                                                                                                                                    |
+| *ScratchpadType*                    | 1        | 0 – 2            | Type of the OTAP scratchpad present in the node. Type can be:  0 = Blank: No valid scratchpad is present 1 = Present: A valid scratchpad is present, but has not been marked to be processed 2 = Process: A valid scratchpad is present and has been marked to be processed                                                       |
+| *ScratchpadStatus*                  | 1        | 0 – 255          | Status of the OTAP scratchpad present in the node:  255 = New: Bootloader has not yet processed the scratchpad 0 = Success: Bootloader has processed the scratchpad successfully 1 – 254 = Error: Bootloader encountered an error while processing the scratchpad  Status is 0 also if there is no scratchpad present in the node |
+| *ProcessedScratchpadLengthInBytes*  | 4        | 0 or 96 –        | Length of the OTAP scratchpad that produced the firmware currently running on the node                                                                                                                                                                                                                                            |
+| *ProcessedScratchpadCrc*            | 2        | 0 – 65535        | CRC of the OTAP scratchpad that produced the firmware currently running on the node                                                                                                                                                                                                                                               |
+| *ProcessedScratchpadSequenceNumber* | 1        | 0 – 255          | Sequence number of the OTAP scratchpad that produced the firmware currently running on the node                                                                                                                                                                                                                                   |
+| *FirmwareMemoryAreaId*              | 4        | Any              | Memory area ID of the file in the OTAP scratchpad that produced the firmware currently running on the node  OTAP scratchpad may contain multiple firmware images. This value can be used to determine which one the bootloader picked.                                                                                            |
+| *FirmwareMajorVersion*              | 1        | 0 – 255          | Major version number of currently running firmware                                                                                                                                                                                                                                                                                |
+| *FirmwareMinorVersion*              | 1        | 0 – 255          | Minor version number of currently running firmware                                                                                                                                                                                                                                                                                |
+| *FirmwareMaintenanceVersion*        | 1        | 0 – 255          | Maintenance version number of currently running firmware                                                                                                                                                                                                                                                                          |
+| *FirmwareDevelopmentVersion*        | 1        | 0 – 255          | Development version number of currently running firmware                                                                                                                                                                                                                                                                          |
+| *CRC*                               | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                  |
+
+#### MSAP-SCRATCHPAD_UPDATE.request
+
+The application issues MSAP-SCRATCHPAD_UPDATE.request to mark the OTAP
+scratchpad for processing by the bootloader. The bootloader will process the
+scratchpad contents on next reboot. See section
+[MSAP-STACK_STOP.request](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-STACK_STOP.request)
+on how to reboot the node. Note, that this request is only valid when the stack
+is in the stopped state.  
+The MSAP-SCRATCHPAD_UPDATE.request frame does not contain any payload.
+
+#### MSAP-SCRATCHPAD_UPDATE.confirm
+
+The MSAP-SCRATCHPAD_UPDATE.confirm is issued by the stack in response to the
+MSAP-SCRATCHPAD_UPDATE.request. Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+|----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x9A             | Identifier of MSAP-SCRATCHPAD_UPDATE.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                             |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                   |
+| *Result*       | 1        | 0 – 3            | The return result of the corresponding MSAP-SCRATCHPAD_UPDATE.request. The different values are defined as follows:  0 = Success: Bootloader may process the scratchpad 1 = Failure: Stack in invalid state, i.e. not stopped 2 = Failure: No valid OTAP scratchpad present  3 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                                                   |
+
+#### MSAP-SCRATCHPAD_CLEAR.request
+
+The MSAP-SCRATCHPAD_CLEAR.request is issued by the application when it wants to
+erase the OTAP scratchpad. Note, that this request is only valid when the stack
+is in the stopped state.  
+The MSAP-SCRATCHPAD_CLEAR.request frame does not contain any payload.
+
+#### MSAP-SCRATCHPAD_CLEAR.confirm
+
+The MSAP-SCRATCHPAD_CLEAR.confirm is issued by the stack in response to the
+MSAP-SCRATCHPAD_CLEAR.request. Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                            |
+|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x9B             | Identifier of MSAP-SCRATCHPAD_CLEAR.confirm primitive                                                                                                                                                                                                                                                                                                                                                      |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                           |
+| *Result*       | 1        | 0 – 1            | The return result of the corresponding MSAP- SCRATCHPAD_CLEAR.request. The different values are defined as follows:  0 = Success: Scratchpad has been erased  1 = Failure: Stack in invalid state, i.e. not stopped  2 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                           |
+
+### MSAP-NON-ROUTER LONG SLEEP (NRLS) Service
+
+The Non-Router Long Sleep (NRLS) is a service used to sleep Wirepas Mesh stack
+for time periods. Once waking-up from the sleep, Wirepas Mesh stack wakes up
+from the sleep without system reset. During Wirepas Mesh stack sleep the NRLS
+services over Dual-MCU API are available. Before entering to NRLS sleep, Wirepas
+Mesh stack needs to be running.  
+In order to use NRLS servicethe cNodeRole (as defined in Table 51) needs to be
+configured to stack as 0x03 (non router node). Any other node role settings do
+not allow to use NRLS functionality..  
+The MSAP-NON-ROUTER LONG SLEEP service includes following primitives:
+
+-   MSAP-NRLS.request
+
+-   MSAP-NRLS.confirm
+
+-   MSAP-NRLS_STOP.request
+
+-   MSAP-NRLS_STOP.confirm
+
+-   MSAP-NRLS_STATE_GET.request
+
+-   MSAP-NRLS_STATE_GET.response
+
+-   MSAP-NRLS_GOTOSLEEP_INFO.request
+
+-   MSAP-NRLS_GOTOSLEEP_INFO.response
+
+#### MSAP-NRLS.request
+
+This command shall start the Wirepas Mesh stack sleep for defined time. Frame
+fields are described in the table below.
+
+| **Field Name**        | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
+|-----------------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*        | 1        | 0x40             | Identifier of MSAP-NRLS.request primitive                                                                                                                        |
+| *Frame ID*            | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *NRLS time*           | 4        | 0 to 0x93A80     | 0 = Starts Wirepas Mesh stack sleep for maximum value of 0x93A80 seconds (7 days)  Other values = sleep time in seconds                                          |
+| *Appconfig wait time* | 4        | 0x04 to 0x258    | 0 = App config is not awaited before going to sleep  Other values = Time used to wait for app config data is received from network before going to sleep.        |
+| *CRC*                 | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+
+Wirepas Mesh stack sleep time is expressed in seconds. Sleep time starts when
+node gets disconnected from Mesh network. To disconnect from the network, some
+time is needed for signaling before disconnection is completed (the NRLS time
+does not include this time needed for signaling before going to sleep).
+Signaling before actual stack sleep start might take time up to 30 seconds or
+more depending of used radio.  
+If the time when waking up from NRLS sleep and going back to NRLS sleep is very
+short and app config is used to signal to the network e.g. overhaul state, good
+practice is to have Appconfig wait time long enough (minimum 4 seconds) to make
+sure that app config data is received before going to NRLS sleep (see more
+information in
+[[1]](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#References)).
+
+#### MSAP-NRLS.confirm
+
+The return result of the corresponding MSAP-NRLS.request is received in
+MSAP-NRLS.confirm message. Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                 |
+|----------------|----------|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0xC0             | Identifier of MSAP-NRLS.confirm primitive                                                                                                                                                                                                                                                                       |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                |
+| *Result*       | 1        | 0,1,2,5,6        | 0 = Success: NRLS started  1 = Failure: Invalid stack state  2 = Failure: Invalid stack role  5 = Failure: Invalid value  6 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                |
+
+#### <br>MSAP-NRLS_STOP.request
+
+This command shall wakeup the Wirepas Mesh stack from NRLS sleep.
+
+#### MSAP-NRLS_STOP.confirm
+
+The MSAP-NRLS_STOP.confirm issued by the stack as a response to the
+MSAP-NRLS_STOP.request. Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                        |
+|----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0xC1             | Identifier of MSAP-NRLS_STOP.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                         |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                       |
+| *Result*       | 1        | 0                | The return result of the corresponding MSAP-NRLS_STOP.request. The different values are defined as follows:  0 = Success: NRLS is stopped and stack is started  1 = Failure: Stack is not in sleep state (stopped) and NRLS stop cannot be done  6 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                                       |
+
+#### MSAP-NRLS_STATE_GET.request
+
+This command shall query NRLS state from the Wirepas Mesh stack.
+
+#### MSAP-NRLS_STATE_GET.response
+
+The MSAP-NRLS_STATE_GET.response issued by the stack as a response to the
+MSAP-NRLS_STATE_GET.request. Frame fields are described in the table below.
+
+| **Field Name**    | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
+|-------------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*    | 1        | 0xC2             | Identifier of MSAP-NRLS_STATE_GET.response primitive                                                                                                             |
+| *Frame ID*        | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| State             | 1        | 1,2              | The return result of the corresponding MSAP-NRLS_STATE_GET.request. The different values are defined as follows:  1 = NRLS is active  2 = NRLS is not active     |
+| Remain sleep time | 4        | 0-0x93A80        | Remaining Wirepas Mesh stack sleep time in seconds. (Time is updated every 3 seconds)                                                                            |
+| *CRC*             | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+
+#### MSAP-NRLS_GOTOSLEEP_INFO.request
+
+Request time in seconds which was used in previous NRLS sleep request starting
+from application NRLS sleep request until stack enters to NRLS sleep. Returned
+time in MSAP-NRLS_GOTOSLEEP_INFO.response includes total time used including
+application callbacks during that period.
+
+#### MSAP- NRLS_GOTOSLEEP_INFO.response
+
+The MSAP-NRLS_GOTOSLEEP_INFO.response issued by the stack as a response to the
+MSAP-NRLS_GOTOSLEEP.request. Frame fields are described in the table below.
+
+| **Field Name**             | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                          |
+|----------------------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID*             | 1        | 0xCC             | Identifier of MSAP-NRLS_GOTOSLEEP_INFO.response primitive                                                                                                                                                                |
+| *Frame ID*                 | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                         |
+| LatestNRLS goto sleep time | 4        | 0 to 0x93A80     | Time in seconds which was used in previous NRLS sleep request starting from application NRLS sleep request until stack enters to NRLS sleep. Time is total time used including application callbacks during that period. |
+| *CRC*                      | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                         |
+
+### MSAP-MAX_MESSAGE_QUEUING Service
+
+The maximum message queuing services are used to change or read the current
+value of the time for how long the message is hold in the node's queue before it
+is discarded. Queuing time can be changed to normal and high priority messages.  
+Select queuing time carefully, too short value might cause unnecessary message
+drops and too big value filling up message queues. For consistent performance it
+is recommended to use the same queuing time in the whole network.  
+Minimum queuing time shall be bigger than access cycle interval in TDMA
+networks. It is recommended to use multiples of access cycle interval (+ extra)
+to give time for message repetitions, higher priority messages taking over the
+access slot etc. Access cycle is not limiting the minimum value in CSMA-CA
+networks.  
+Precision of the time when message is discarded depends on the checking interval
+of message's age. Interval is 1s in CSMA-CA and 15s for energy saving reasons in
+TDMA networks i.e. precision is 1s or 15s depending on used channel access
+method.  
+The MSAP-MAX_MESSAGE_QUEUING service includes following primitives:
+
+-   MSAP-MAX_QUEUE_TIME_WRITE.request
+
+-   MSAP-MAX_QUEUE_TIME_WRITE.confirm
+
+-   MSAP-MAX_QUEUE_TIME_READ.request
+
+-   MSAP-MAX_QUEUE_TIME_READ.confirm
+
+#### MSAP-MAX_QUEUE_TIME_WRITE.request
+
+This request is issued by the application layer to change the maximum queuing
+time for messages.
+
+| **Primitive ID** | **Frame ID** | **Payload length** | **Priority** | **Time** | **CRC**  |
+|------------------|--------------|--------------------|--------------|----------|----------|
+| 1 octet          | 1 octet      | 1 octet            | 1 octet      | 2 octets | 2 octets |
+
+Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                  |
+|----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x4F             | Identifier of MSAP-MAX_QUEUE_TIME_WRITE.request primitive                                                                                                                        |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                 |
+| *Priority*     | 1        | 0 - 1            | Message priority which queuing time to be set.  0 = User traffic class 0, i.e. normal priority 1 = User traffic class 1, i.e. high priority.                                     |
+| *Time*         | 4        | 2 – 65534        | Maximum queuing time in seconds.  Read instructions in chapter 2.3.15.   Default time values after factory reset:  Normal priority: 600s = 10 min.  High priority: 300s = 5 min. |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                 |
+
+#### MSAP-MAX_QUEUE_TIME_WRITE.confirm
+
+The MSAP-MAX_QUEUE_TIME_WRITE.confirm is issued in response to the
+MSAP-MAX_QUEUE_TIME_WRITE.request. Frame fields are described in the table
+below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
+|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0xCF             | Identifier of MSAP-MAX_QUEUE_TIME_WRITE.confirm primitive                                                                                                        |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *Result*       | 1        | 0, 3             | The return result of the corresponding MSAP-MAX_QUEUE_TIME_WRITE.request:  0 = Success  3 = Failure: Invalid priority or time                                    |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+
+#### MSAP-MAX_QUEUE_TIME_READ.request
+
+This request is issued by the application layer to read the current value of the
+maximum queuing time.
+
+| **Primitive ID** | **Frame ID** | **Payload length** | **Priority** | **CRC**  |
+|------------------|--------------|--------------------|--------------|----------|
+| 1 octet          | 1 octet      | 1 octet            | 1 octet      | 2 octets |
+
+Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
+|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x50             | Identifier of MSAP-MAX_QUEUE_TIME_READ.request primitive                                                                                                         |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *Priority*     | 1        | 0 - 1            | Message priority which queuing time to be read.  0 = User traffic class 0, i.e. normal priority 1 = User traffic class 1, i.e. high priority.                    |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+
+#### MSAP-MAX_QUEUE_TIME_READ.confirm
+
+The MSAP-MAX_QUEUE_TIME_READ.confirm is issued in response to the
+MSAP-MAX_QUEUE_TIME_READ.request.
+
+| **Primitive ID** | **Frame ID** | **Payload length** | **Result** | **Time** | **CRC**  |
+|------------------|--------------|--------------------|------------|----------|----------|
+| 1 octet          | 1 octet      | 1 octet            | 1 octet    | 2 octets | 2 octets |
+
+Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
+|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0xD0             | Identifier of MSAP-MAX_QUEUE_TIME_READ.confirm primitive                                                                                                         |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *Result*       | 1        | 0, 3             | The return result of the corresponding MSAP-MAX_QUEUE_TIME_READ.request:  0 = Success  3 = Failure: Invalid priority                                             |
+| *Time*         | 2        | 2 - 65534        | Read value of maximum queuing time in seconds.                                                                                                                   |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+
+### MSAP Attributes
+
+The MSAP attributes are specified in Table 45.
+
+  
+*Table 45. MSAP attributes*
+
+| **Attribute name**                       | **Attribute ID** | **Type** | **Size** |
+|------------------------------------------|------------------|----------|----------|
+| mStackStatus*mStackStatus*               | 1                | R        | 1        |
+| mPDUBufferUsage*mPDUBufferUsage*         | 2                | R        | 1        |
+| mPDUBufferCapacity*mPDUBufferCapacity*   | 3                | R        | 1        |
+| Reserved                                 | 4                | \-       | \-       |
+| mEnergy*mEnergy*                         | 5                | R/W      | 1        |
+| mAutostart*mAutostart*                   | 6                | R/W      | 1        |
+| mRouteCount*mRouteCount*                 | 7                | R        | 1        |
+| mSystemTime*mSystemTime*                 | 8                | R        | 4        |
+| mAccessCycleRange*mAccessCycleRange*     | 9                | R/W      | 4        |
+| mAccessCycleLimits*mAccessCycleLimits*   | 10               | R        | 4        |
+| mCurrentAccessCycle*mCurrentAccessCycle* | 11               | R        | 2        |
+| mScratchpadBlockMax*mScratchpadBlockMax* | 12               | R        | 1        |
+| mMulticastGroups*mMulticastGroups*       | 13               | R/W      | 40       |
+
+#### mStackStatus
+
+| **Attribute ID** | **1**               |
+|------------------|---------------------|
+| Type             | Read only           |
+| Size             | 1 octet             |
+| Valid values     | 0x00 – 0x3f or 0x80 |
+| Default value    | \-                  |
+
+The Stack status attribute indicates whether the stack is running or not, and
+whether it can be started. The stack status is a bit field with individual bits
+defined in Table 46.
+
+  
+*Table 46. Stack status bits*
+
+| **Bit number** | **Description**                                                                                              |
+|----------------|--------------------------------------------------------------------------------------------------------------|
+| 0 (LSB)        | 0: Stack running1: Stack stopped                                                                             |
+| 1              | 0: Network address set1: Network address missing                                                             |
+| 2              | 0: Node address set1: Node address missing                                                                   |
+| 3              | 0: Network channel set1: Network channel missing                                                             |
+| 4              | 0: Node role set1: Node role missing                                                                         |
+| 5              | 0: Application configuration data valid1: Application configuration data missing (valid only on sink device) |
+| 6              | Reserved                                                                                                     |
+| 7 (MSB)        | Reserved                                                                                                     |
+
+**mPDUBufferUsage**
+
+| **Attribute ID** | **2**                |
+|------------------|----------------------|
+| Type             | Read only            |
+| Size             | 1 octet              |
+| Valid values     | 0 – *cPDUBufferSize* |
+| Default value    | \-                   |
+
+The PDUs processed by the stack are stored in a buffer. There is a maximum limit
+for the number of PDUs that can fit in the buffer (see CSAP *cPDUBufferSize*
+attribute in section
+[cPDUBufferSize](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cPDUBufferSize)).
+The *mPDUBufferUsage* attribute tells how many PDU items there are in the buffer
+at the moment.
+
+#### mPDUBufferCapacity
+
+| **Attribute ID** | **3**                |
+|------------------|----------------------|
+| Type             | Read only            |
+| Size             | 1 octet              |
+| Valid values     | 0 – *cPDUBufferSize* |
+| Default value    | \-                   |
+
+The *mPDUBufferCapacity* attribute indicates the number of PDUs that can still
+fit in the stack PDU buffer at the moment (i.e. *cPDUBufferSize -
+mPDUBufferUsage*).
+
+#### mEnergy
+
+| **Attribute ID** | **5**          |
+|------------------|----------------|
+| Type             | Read and write |
+| Size             | 1 octet        |
+| Valid values     | 0 – *255*      |
+| Default value    | 255            |
+
+The stack can use in its route cost calculations the state of energy remaining
+in each node. The state can be set with the *mEnergy* attribute. It is a value
+between 0 and 255, where 0 corresponds to a state where the node is almost out
+of energy and 255 corresponds to a state where maximum amount of energy is
+available.  
+The value is currently used in route cost calculations with a granularity of 32
+units. In other words, the energy value must change by at least 32 units for it
+to affect the cost calculations.  
+This attribute is intended to be set by the application periodically, to enable
+the stack routing layer to use energy parameter in cost and route calculation.  
+The specifics on how the remaining energy is measured is left for the
+responsibility of the application due to fact that different power sources and
+measurement circuits may be used depending on the implementation.
+
+#### mAutostart
+
+| **Attribute ID** | **6**          |
+|------------------|----------------|
+| Type             | Read and write |
+| Size             | 1 octet        |
+| Valid values     | 0 or 1         |
+| Default value    | 1              |
+
+The stack auto-start function starts the stack automatically after boot (e.g.
+when returning from power down or when the stack is internally booted). A value
+of 1 enables auto-start, 0 disables it.
+
+#### mRouteCount
+
+| **Attribute ID** | **7**     |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 1 octet   |
+| Valid values     | 0 or 1    |
+| Default value    | \-        |
+
+Whenever there is a route to sink, the *mRouteCount* attribute is 1, otherwise
+0.
+
+#### mSystemTime
+
+| Attribute ID  | 8               |
+|---------------|-----------------|
+| Type          | Read only       |
+| Size          | 4 octets        |
+| Valid values  | 0 to 4294967295 |
+| Default value | \-              |
+
+The stack keeps track of time in 1/128 s increments. Attribute *mSystemTime* can
+be used to read the amount of time elapsed from the stack startup. *mSystemTime*
+wraps back to 0 about every 388 days.
+
+#### mAccessCycleRange
+
+| Attribute ID  | 9                     |
+|---------------|-----------------------|
+| Type          | Read and write        |
+| Size          | 4 octets              |
+| Valid values  | See description below |
+| Default value | Not set               |
+
+Normally the stack chooses a suitable access cycle automatically, between 2, 4
+or 8 seconds, depending on the amount of network traffic. Some applications may
+need to further limit the access cycle durations in use. Attribute
+*mAccessCycleRange* can be used to do that.  
+Two 16-bit values are packed in one 32-bit attribute: top 16 bits contain the
+maximum access cycle duration, bottom 16 bits contain the minimum access cycle
+duration. Access cycle durations are expressed in milliseconds, so valid values
+for minimum and maximum are 2000, 4000 and 8000.  
+If *mAccessCycleRange* is not set, or maximum \> minimum, the stack chooses an
+appropriate access cycle based on the amount of network traffic. If maximum =
+minimum, the user can force the access cycle to a specific duration.
+*mAccessCycleRange* is not set by default. Only a factory reset (see section
+[CSAP-FACTORY_RESET
+Service](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#CSAP-FACTORY_RESET-Service))
+can restore *mAccessCycleRange* back to the unset state.  
+Note: When CSMA-CA mode is set as device role (see chapter
+[cNodeRole](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cNodeRole)),
+setting *mAccessCycleRange* cannot be done
+
+#### mAccessCycleLimits
+
+| Attribute ID  | 10                    |
+|---------------|-----------------------|
+| Type          | Read only             |
+| Size          | 4 octets              |
+| Valid values  | See description below |
+| Default value | 0x1f4007d0            |
+
+The *mAccessCycleLimits* attribute can be read to determine the valid values for
+*mAccessCycleRange* (see section
+[mAccessCycleRange](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#mAccessCycleRange)).
+Similarly to *mAccessCycleRange*, two 16-bit values are packed in one 32-bit
+attribute: top 16 bits contain the maximum valid access cycle duration, bottom
+16 bits contain the minimum valid access cycle duration.  
+In current Wirepas Mesh firmware release, the value of *mAccessCycleLimits* is
+(8000 \<\< 16) + 2000, or 0x1f4007d0, i.e. the minimum valid access cycle
+duration is 2000 ms and the maximum valid access cycle duration is 8000 ms.
+(4000 ms is also a valid access cycle duration, but that possibility is not
+encoded in the value of *mAccessCycleLimits*.)
+
+#### mCurrentAccessCycle
+
+| **Attribute ID** | **11**           |
+|------------------|------------------|
+| Type             | Read only        |
+| Size             | 2 octets         |
+| Valid values     | 2000, 4000, 8000 |
+| Default value    | \-               |
+
+The *mCurrentAccessCycle* attribute reports the currently used access cycle, in
+milliseconds.
+
+#### mScratchpadBlockMax
+
+| **Attribute ID** | **12**    |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 1 octet   |
+| Valid values     | \-        |
+| Default value    | \-        |
+
+The attribute *mScratchpadBlockMax* contains the value for maximum number of
+bytes in an MSAP-SCRATCHPAD_BLOCK request (see section
+[MSAP-SCRATCHPAD_BLOCK.request](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-SCRATCHPAD_BLOCK.request)).
+
+#### mMulticastGroups
+
+| Attribute ID  | 13                    |
+|---------------|-----------------------|
+| Type          | Read and Write        |
+| Size          | 10 \* 4 octets        |
+| Valid values  | See description below |
+| Default value | 10 x 0xFFFFFFFF       |
+
+The attribute *mMulticastGroups* tells in which multicast groups the device
+belongs to. When data packet is sent with multicast group address (see chapter
+2.1), only nodes belonging to that group will receive it. Each group is 4 octets
+long with following value ranges:
+
+-   0: Don't care value
+
+-   1-0x00FF FFFF: Belonging to multicast groups 0x8000 0001-0x80FF FFFF
+
+-   Other values reserved for future use
+
+**Note:** Chapter 2.1 defines the multicast addresses to be in range between
+0x80000000-0x80FFFFFF, MSB byte (0x80) is not used in this attribute. As well,
+it is not possible to declare membership to group 0x80000000 (since 3 LSB bytes
+would be 0).  
+The value of the attribute is the collection of 10 groups. All values **must**
+be given. If device belongs to less than 10 groups, use value 0 of don't care
+value. Devices don't have to belong to any groups (which is default value).
+Don't care values can reside at the middle of the sequence. Same value can
+present multiple times in the sequence. Addresses can reside in the sequence in
+any order.  
+When data is transmitted to the multicast groups, all the nodes that belong to
+that group receive the message. Few examples:
+
+  
+*Table 47: mMulticastGroups examples*
+
+| **Value of the attribute**                                                                                                       | **Description**                                                                                          |
+|----------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| *0x01000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000*  *0x00000000 0x00000000*               | Device belongs to multicast group 0x8000 0001 only                                                       |
+| *0x01000000 0x02000000 0x03000000 0x04000000 0x05000000 0x06000000 0x07000000 0x08000000*  *0x09000000 0x0A000000*               | Device belongs to multicast groups 0x8000 0001 – 0x8000 000A.                                            |
+| *0x0A000000 0x09000000 0x08000000 0x07000000 0x06000000 0x05000000 0x04000000 0x03000000 0x02000000 0x01000000*                  | Device belongs to multicast groups 0x8000 0001 – 0x8000 000A. Values can be in any order                 |
+| *0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000*  *0x00000000 0x00000000*               | Device does not belong to any group                                                                      |
+| *0x00000000 0x00000000 0x00000000 0x00000000 0x05000000 0x00000000 0x00000000 0x00000000*  *0x00000000 0x00000000*               | Device belongs to multicast group 0x8000 0005 only (note: values can be in any order)                    |
+| *0x01000000 0x01000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000*  *0x00000000 0x00000000*               | Device belongs to multicast group 0x8000 0001 only. It is ok to set same multicast group multiple times. |
+| *0x01000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000*  *0x00000000*                          | Invalid length                                                                                           |
+| *0x01000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000*  *0x00000000 0x00000000*  *0x00000000* | Invalid length                                                                                           |
+
+## Configuration Services (CSAP)
+
+The configuration services are used to control the stack configuration.
+
+### CSAP-ATTRIBUTE_WRITE Service
+
+The CSAP-ATTRIBUTE_WRITE service can be used by the application layer to write
+the configuration attributes to the stack. The CSAP-ATTRIBUTE_WRITE service
+includes the following primitives:
+
+-   CSAP-ATTRIBUTE_WRITE.request
+
+-   CSAP-ATTRIBUTE_WRITE.confirm
+
+The CSAP-ATTRIBUTE_WRITE service primitives' frame formats are identical with
+the MSAP-ATTRIBUTE_WRITE service (See section [MSAP-ATTRIBUTE_WRITE
+Service](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-ATTRIBUTE_WRITE-Service)).
+Only differences are used primitive IDs and valid attributes that can be
+read/written. For valid CSAP attributes see section [CSAP
+Attributes](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#CSAP-Attributes).  
+Note: The configuration attributes can only be written when the stack is in
+stopped state.
+
+### CSAP-ATTRIBUTE_READ Service
+
+The CSAP-ATTRIBUTE_READ service can be used by the application layer to read the
+configuration attributes from the stack. The CSAP-ATTRIBUTE_READ service
+includes the following primitives:
+
+-   CSAP-ATTRIBUTE_READ.request
+
+-   CSAP-ATTRIBUTE_READ.confirm
+
+The CSAP-ATTRIBUTE_READ service primitives' frame formats are identical with the
+MSAP-ATTRIBUTE_READ service (See section [MSAP-ATTRIBUTE_READ
+Service](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-ATTRIBUTE_READ-Service)).
+Only differences are used primitive IDs and valid attributes that can be
+read/written. For valid CSAP attributes see section [CSAP
+Attributes](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#CSAP-Attributes).
+
+### CSAP-FACTORY_RESET Service
+
+The persistent attributes can be cleared using the CSAP-FACTORY_RESET service.
+The CSAP-FACTORY_RESET service includes the following primitives:
+
+-   CSAP-FACTORY_RESET.request
+
+-   CSAP-FACTORY_RESET.confirm
+
+#### CSAP-FACTORY_RESET.request
+
+The CSAP-FACTORY_RESET.request issued by the application layer when the
+persistent attributes should be cleared. Frame fields are described in the table
+below.
+
+| **Field Name** | **Size** | **Valid Values**                      | **Description**                                                                                                                                                  |
+|----------------|----------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x16                                  | Identifier of CSAP-FACTORY_RESET.request primitive                                                                                                               |
+| *Frame ID*     | 1        | 0 – 255                               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+| *ResetKey*     | 4        | 0x74 0x49 0x6F 0x44 (“DoIt” in ASCII) | Special key value used to verify that user wants to clear persistent values.                                                                                     |
+| *CRC*          | 2        | \-                                    | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format) |
+
+#### CSAP-FACTORY_RESET.confirm
+
+The CSAP-FACTORY_RESET.confirm issued by the stack as a response to the
+CSAP-FACTORY_RESET.request. Frame fields are described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                |
+|----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| *Primitive ID* | 1        | 0x96             | Identifier of CSAP-FACTORY_RESET.confirm primitive                                                                                                                                                                                                                                                                                                                                                                             |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                               |
+| *Result*       | 1        | 0 – 2            | The return result of the corresponding CSAP-FACTORY_RESET.request. The different values are defined as follows:  0 = Success 1 = Failure: Stack in invalid state to clear attributes 2 = Failure: Attempted to use an invalid reset key  3 = Failure: Access denied (see section [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits)) |
+| *CRC*          | 2        | \-               | See section [General Frame Format](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#General-Frame-Format)                                                                                                                                                                                                                                                               |
+
+### CSAP Attributes
+
+The CSAP attributes are specified in Table 50.
+
+  
+*Table 50. CSAP attributes*
+
+| **Attribute name**                                                                                                                                                                          | **Attribute ID** | **Type** | **Size** |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|----------|----------|
+| [cNodeAddress](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cNodeAddress)                 | 1                | R/W      | 4        |
+| [cNetworkAddress](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cNetworkAddress)           | 2                | R/W      | 3        |
+| [cNetworkChannel](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cNetworkChannel)           | 3                | R/W      | 1        |
+| [cNodeRole](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cNodeRole)                       | 4                | R/W      | 1        |
+| [cMTU](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cMTU)                                 | 5                | R        | 1        |
+| [cPDUBufferSize](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cPDUBufferSize)             | 6                | R        | 1        |
+| [cScratchpadSequence](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cScratchpadSequence)   | 7                | R        | 1        |
+| [cMeshAPIVersion](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cMeshAPIVersion)           | 8                | R        | 2        |
+| [cFirmwareMajor](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cFirmwareMajor)             | 9                | R        | 2        |
+| [cFirmwareMinor](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cFirmwareMinor)             | 10               | R        | 2        |
+| [cFirmwareMaintenance](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cFirmwareMaintenance) | 11               | R        | 2        |
+| [cFirmwareDevelopment](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cFirmwareDevelopment) | 12               | R        | 2        |
+| [cCipherKey](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cCipherKey)                     | 13               | W        | 16       |
+| [cAuthenticationKey](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cAuthenticationKey)     | 14               | W        | 16       |
+| [cChannelLimits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cChannelLimits)             | 15               | R        | 2        |
+| [cAppConfigDataSize](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cAppConfigDataSize)     | 16               | R        | 1        |
+| [cHwMagic](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cHwMagic)                         | 17               | R        | 2        |
+| [cStackProfile](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cStackProfile)               | 18               | R        | 2        |
+| [cOfflineScan](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cOfflineScan)                 | 20               | R/W      | 2        |
+| [cChannelAllocMap](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cChannelAllocMap)         | 21               | R/W      | 4        |
+| [cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cFeatureLockBits)         | 22               | R/W      | 4        |
+| [cFeatureLockKey](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#WirepasMeshDual-MCUAPIReferenceManual-_cFeatureLockKey)           | 23               | W        | 16       |
+
+#### cNodeAddress
+
+| **Attribute ID** | **1**                       |
+|------------------|-----------------------------|
+| Type             | Read and write              |
+| Size             | 4 octets                    |
+| Valid values     | Any valid *unicast* address |
+| Default value    | Not set                     |
+
+Attribute *cNodeAddress* sets the address of the node. See section [Node
+Addressing](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#Node-Addressing)
+for details.
+
+#### cNetworkAddress
+
+| **Attribute ID** | **2**               |
+|------------------|---------------------|
+| Type             | Read and write      |
+| Size             | 3 octets            |
+| Valid values     | 0x000001 – 0xFFFFFE |
+| Default value    | Not set             |
+
+*cNetworkAddress*, the network address, is used by the radio to detect valid
+transmissions and to filter out both noise and other transmissions which do not
+belong to the same network. The network address must be identical for all nodes
+within the same network. Multiple Wirepas Mesh networks can coexist within an
+area, if they are configured to use different network addresses.  
+Due to the way radios detect valid transmissions, some network addresses are
+better than others. A good network address should have no repetition or
+patterns. Examples of poor network addresses: 0x000000, 0xFFFFFF, 0xAAAAAA,
+0x555555. When choosing a network address for a network, using a 24-bit random
+number as the network address is recommended.
+
+#### cNetworkChannel
+
+| **Attribute ID** | **3**                                        |
+|------------------|----------------------------------------------|
+| Type             | Read and write                               |
+| Size             | 1 octet                                      |
+| Valid values     | Limits defined by *cChannelLimits* attribute |
+| Default value    | Not set                                      |
+
+Each network has a default channel, set by the *cNetworkChannel* attribute. The
+network channel must be identical for all nodes within the same network.
+Available radio channel range depends on the radio hardware and frequency band
+of operation. See attribute *cChannelLimits* in section
+[cChannelLimits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cChannelLimits).  
+The network channel is used for finding neighbors in a situation where no
+neighbors are yet known, e.g. right after the stack has started.
+
+#### cNodeRole
+
+| **Attribute ID** | **4**          |
+|------------------|----------------|
+| Type             | Read and write |
+| Size             | 1 octet        |
+| Valid values     | Table 51       |
+| Default value    | 0x82           |
+
+A Wirepas Mesh network consists of sinks, routing nodes and non-routing nodes.
+Attribute *cNodeRole* sets the node role. A valid roles are listed in Table 51.
+
+  
+*Table 51. Node roles*
+
+| **Value**   | **Base role**                                          | **Description**                                                                                                                                                                                                                                                                                             |
+|-------------|--------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 0x00        | Reserved                                               |                                                                                                                                                                                                                                                                                                             |
+| 0x01        | Sink                                                   | A device that is usually connected to a server backbone. All data packets sent to the *AnySink* address end up in here. Similarly, all diagnostic data generated by the network itself is transmitted to a sink device.                                                                                     |
+| 0x02        | Router Node                                            | A device that is fixed to be capable of routing traffic for other nodes in time slotted mode.                                                                                                                                                                                                               |
+| 0x03        | non-router node                                        | A device that is part of the network but does not route traffic of other nodes in time slotted mode. Mainly used in extremely low-power devices.                                                                                                                                                            |
+| 0x04 – 0x0F | Reserved                                               |                                                                                                                                                                                                                                                                                                             |
+| 0x11        | CSMA-CA mode Sink                                      | When this is enabled, the sink keeps the receiver enabled all the time when it is not transmitting. Then, the latency on sending data to sink is way faster with the expense on higher power consumption. Intended to be used only with mains-powered devices.                                              |
+| 0x12        | CSMA-CA mode Router node                               | When this is enabled, the router node keeps the receiver enabled all the time when it is not transmitting. Then, the latency on sending data to router node is way faster with the expense on higher power consumption. Intended to be used only with mains-powered devices.                                |
+| 0x13        | CSMA-CA mode non-router node                           | When this is enabled, the non-router node keeps the receiver enabled all the time when it is not transmitting. Then, the latency on sending data to router node is way faster with the expense on higher power consumption. Intended to be used only with mains-powered devices.                            |
+| 0x14 – 0x81 | Reserved                                               |                                                                                                                                                                                                                                                                                                             |
+| 0x82        | Router node with automatic role selection              | A node that is boots up as Router node and capable of routing traffic for other nodes in time slotted mode. Router node is evaluating its role to ensure that there are not too many routing nodes within the radio range. It is highly recommended to enable this in dense and large networks.             |
+| 0x83        | Non-router node with automatic role selection          | A node that is boots up as non-router node and without capable of routing traffic for other nodes in time slotted mode. Node is evaluating its role to ensure that there is sufficient amount of routing nodes within the radio range. It is highly recommended to enable this in dense and large networks. |
+| 0x83-0x91   | Reserved                                               |                                                                                                                                                                                                                                                                                                             |
+| 0x92        | CSMA-CA mode Router node with automatic role selection | A node that is boots up as Router node and capable of routing traffic for other nodes in CSMA-CA mode. Router node is evaluating its role to ensure that there are not too many routing nodes within the radio range. It is highly recommended to enable this in dense and large networks.                  |
+| 0x93        | CSMA-CA Non-router node with automatic role selection  | A node that is boots up as non-router node and without capable of routing traffic for other nodes in CSMA-CA mode. Node is evaluating its role to ensure that there is sufficient amount of routing nodes within the radio range. It is highly recommended to enable this in dense and large networks.      |
+| 0x94-0xFF   | reserved                                               |                                                                                                                                                                                                                                                                                                             |
+
+#### cMTU
+
+| **Attribute ID** | **5**                        |
+|------------------|------------------------------|
+| Type             | Read only                    |
+| Size             | 1 octet                      |
+| Valid values     | Depends on the radio profile |
+| Default value    | \-                           |
+
+Attribute *cMTU* contains the Maximum Transmission Unit (MTU) i.e. maximum APDU
+payload size in octets.
+
+#### cPDUBufferSize
+
+| **Attribute ID** | **6**     |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 1 octet   |
+| Valid values     | \-        |
+| Default value    | \-        |
+
+The PDUs processed by the stack are stored in a buffer. There is a maximum limit
+for the number of PDUs that can fit in the buffer, as indicated by the
+*cPDUBufferSize* attribute. See sections
+[mPDUBufferUsage](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#mPDUBufferUsage)
+and
+[mPDUBufferCapacity](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#mPDUBufferCapacity)
+for information about current PDU buffer usage.
+
+#### cScratchpadSequence
+
+| **Attribute ID** | **7**     |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 1 octet   |
+| Valid values     | 0 – 255   |
+| Default value    | \-        |
+
+Attribute *cScratchpadSequence* indicates the sequence number of the OTAP
+scratchpad present in the node, or 0 if there is no scratchpad stored in the
+node.
+
+#### cMeshAPIVersion
+
+| **Attribute ID** | **8**     |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 2 octets  |
+| Valid values     | 1 – 255   |
+| Default value    | \-        |
+
+The *cMeshAPIVersion* attribute can be read to determine which version of
+Wirepas Mesh Dual-MCU API is implemented by the current stack firmware version.
+
+#### cFirmwareMajor
+
+| **Attribute ID** | **9**     |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 2 octets  |
+| Valid values     | \-        |
+| Default value    | \-        |
+
+The *cFirmwareMajor* attribute stores the firmware release major version number,
+i.e. the first number in the four-part version number:
+**major**.minor.maintenance.development.
+
+#### cFirmwareMinor
+
+| **Attribute ID** | **10**    |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 2 octets  |
+| Valid values     | \-        |
+| Default value    | \-        |
+
+The *cFirmwareMinor* attribute stores the firmware release minor version number,
+i.e. the second number in the four-part version number:
+major.**minor**.maintenance.development.
+
+#### cFirmwareMaintenance
+
+| **Attribute ID** | **11**    |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 2 octets  |
+| Valid values     | \-        |
+| Default value    | \-        |
+
+The *cFirmwareMaintenance* attribute stores the firmware release maintenance
+version number, i.e. the third number in the four-part version number:
+major.minor.**maintenance**.development.
+
+#### cFirmwareDevelopment
+
+| **Attribute ID** | **12**    |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 2 octets  |
+| Valid values     | \-        |
+| Default value    | \-        |
+
+The *cFirmwareDevelopment* attribute stores the firmware release development
+version number, i.e. the fourth number in the four-part version number:
+major.minor.maintenance.**development**.
+
+#### cCipherKey
+
+| **Attribute ID** | **13**              |
+|------------------|---------------------|
+| Type             | Write only          |
+| Size             | 16 octets           |
+| Valid values     | 0x00..00 – 0xFF..FF |
+| Default value    | 0xFF..FF            |
+
+Attribute *cCipherKey* sets the key that is used for encrypting radio
+transmissions. A value of 0xFF..FF means that the key is not set.  
+It is not possible to read the encryption key back. However, it is possible to
+detect whether a key is set or not. When reading the key value, the error value
+4 (Failure: Invalid attribute value or attribute value not yet set) indicates
+that key is not set. And error value of 5 (Failure: Write-only attribute)
+indicates that the key has been set. Writing a key value with all bits set
+(0xFF..FF) clears the key.  
+Note: In order for encryption to be enabled, both Cipher and Authentication keys
+must be set. If only one of them is set, no encryption or authentication is
+performed.
+
+#### cAuthenticationKey
+
+| **Attribute ID** | **14**              |
+|------------------|---------------------|
+| Type             | Write only          |
+| Size             | 16 octets           |
+| Valid values     | 0x00..00 – 0xFF..FF |
+| Default value    | 0xFF..FF            |
+
+Attribute *cAuthenticationKey* sets the key that is used for verifying the
+authenticity of received data. A value of 0xFF..FF means that the key is not
+set.  
+It is not possible to read the authentication key back. However, it is possible
+to detect whether a key is set or not. When reading the key value, the error
+value 4 (Failure: Invalid attribute value or attribute value not yet set)
+indicates that key is not set. And error value of 5 (Failure: Write-only
+attribute) indicates that the key has been set. Writing a key value with all
+bits set (0xFF..FF) clears the key.  
+Note:In order for encryption to be enabled, both Cipher and Authentication keys
+must be set. If only one of them is set, no encryption or authentication is
+performed.
+
+#### cChannelLimits
+
+| **Attribute ID** | **15**          |
+|------------------|-----------------|
+| Type             | Read only       |
+| Size             | 2 octets        |
+| Valid values     | 0x0101 – 0xFFFF |
+| Default value    | \-              |
+
+Attribute *cChannelLimits* can be read to determine the allowed range of network
+channel numbers. See attribute *cNetworkChannel* in section
+[cNetworkChannel](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cNetworkChannel).  
+Lower 8 bits are the first available channel, upper 8 bits are the last
+available channel. Available radio channel range depends on the radio hardware
+and frequency band of operation.
+
+#### cAppConfigDataSize
+
+| **Attribute ID** | **16**    |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 1 octet   |
+| Valid values     | 80        |
+| Default value    | \-        |
+
+Size of app config data in octets. See sections [MSAP-APP_CONFIG_DATA_WRITE
+Service](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-APP_CONFIG_DATA_WRITE-Service)-[MSAP-APP_CONFIG_DATA_RX
+Service](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-APP_CONFIG_DATA_RX-Service).
+
+#### cHwMagic
+
+| **Attribute ID** | **17**    |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 2 octets  |
+| Valid values     | 1 – 3     |
+| Default value    | \-        |
+
+The *cHwMagic* attribute indicates the radio hardware used. Hardware identifiers
+are listed in Table 52.
+
+  
+*Table 52. Hardware identifiers*
+
+| **Value** | **Radio hardware**                                         |
+|-----------|------------------------------------------------------------|
+| 0x01      | Nordic Semiconductor nRF51x22                              |
+| 0x02      | Silicon Labs EFM32 (256 kB Flash / 32 kB RAM)              |
+| 0x03      | Nordic Semiconductor nRF52832 (512 kB Flash / 64 kB RAM)   |
+| 0x04      | Reserved                                                   |
+| 0x05      | Silicon Labs EFR32xG12 (1024 kB Flash / 128 kB RAM)        |
+| 0x06      | Nordic Semiconductor nRF52840 (1024 kB Flash / 256 kB RAM) |
+| 0x07      | Silicon Labs EFR32xG12 (512 kB Flash / 64 kB RAM)          |
+
+#### cStackProfile
+
+| **Attribute ID** | **18**    |
+|------------------|-----------|
+| Type             | Read only |
+| Size             | 2 octets  |
+| Valid values     | 1–3, 5-6  |
+| Default value    | \-        |
+
+The *cStackProfile* attribute indicates the used frequency band. Frequency bands
+are listed in Table 53.
+
+*Table 53. Frequency bands*
+
+| **Value** | **Frequency band**                                 |
+|-----------|----------------------------------------------------|
+| 0x01      | 2.4 GHz +4 dBm for Nordic Semiconductor (nRF52832) |
+| 0x02      | 868 MHz +10 dBm for Silicon Labs (EZR32)           |
+| 0x03      | 915 MHz +20 dBm USA for Silicon Labs (EZR32)       |
+| 0x04      | Reserved                                           |
+| 0x05      | 917 MHz +14 dBm for Silicon Labs (EZR32)           |
+| 0x06      | Reserved                                           |
+| 0x07      | Reserved                                           |
+| 0x08      | 865 MHz +20 dBm for Silicon Labs (EZR32)           |
+| 0x09      | 2.4 GHz +8 dBm for Silicon Labs (EFR32)            |
+| 0x10      | 915 MHz +13 dBm Brazil for Silicon Labs (EZR32)    |
+| 0x11      | 915 MHz +16 dBm Australia for Silicon Labs (EFR32) |
+| 0x12      | 2.4 GHz +19 dBm for Silicon Labs (EFR32)           |
+| 0x13      | 2.4 GHz +4 dBm for Nordic Semiconductor (nRF52840) |
+| 0x14      | 2.4 GHz +8 dBm for Nordic Semiconductor (nRF52840) |
+| 0x15      | Reserved                                           |
+
+#### cOfflineScan
+
+| **Attribute ID** | **20**                 |
+|------------------|------------------------|
+| Type             | Read and write         |
+| Size             | 2 octets               |
+| Valid values     | 20 – 600               |
+| Default value    | CSMA-CA: 30  TDMA: 600 |
+
+Attribute *cOfflineScan* sets the maximum limit for offline scanning interval
+value in seconds. When the device does not have a route to the sink, this
+interval is used to find the route. The scanning interval is a tradeoff between
+faster rejoin time to the network with the expense of power consumption.
+
+#### cChannelAllocMap
+
+| **Attribute ID** | **21**            |
+|------------------|-------------------|
+| Type             | Read and write    |
+| Size             | 4 octets          |
+| Valid values     | 0x00 – 0xFFFFFFFE |
+| Default value    | 0x11111111        |
+
+Attribute cChannelAllocMap can be used to dedicate radio channels for devices
+that have CB-MAC role definition enabled or devices that do not .  
+Each bit in the value represents one radio channel. LSB equals the first
+available channel. If bit is set, the radio channel is dedicated for devices
+that are configured to CB-MAC mode. If bit is not set, the radio channel is
+dedicated for devices that are not configured to CB-MAC mode. The default value
+equals 25% of channels to be dedicated for devices configured to CB-MAC mode.  
+This attribute is mainly important in dense networks and by using this
+attribute, the amount of devices within radio range can be maximized. For
+example: if none of the devices are configured to CB-MAC mode, it is recommended
+to set this value as 0.  
+**Note: This attribute must be the same throughout the network to operate
+correctly!**  
+**Note: WM FW v3.6.0, v3.6.6, v3.6.7, v3.5.32, v3.5.36 releases and v4.0.xx
+release onwards cChannelAllocMap attribute does not exists anymore - writing
+this attribute will return an error code** (1 = Failure: Unsupported attribute
+ID).
+
+#### cFeatureLockBits
+
+| **Attribute ID** | **22**                |
+|------------------|-----------------------|
+| Type             | Read and write        |
+| Size             | 4 octets              |
+| Valid values     | See description below |
+| Default value    | 0xFFFFFFFF            |
+
+Certain stack features can be disabled by using the *cFeatureLockBits* and
+*cFeatureLockKey* (see section
+[cFeatureLockKey](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockKey))
+attributes. Supported feature lock bits are listed in Table 54  
+A feature can be disabled by clearing its feature lock bit to zero. By default,
+no features are disabled, i.e. the feature lock bits are all set. Reserved bits
+cannot be set to zero. Feature lock is only in effect when a feature lock key is
+set.
+
+*Table 54. Feature lock bits*
+
+| **Lock bits** | **Feature**                                                                                                               |
+|---------------|---------------------------------------------------------------------------------------------------------------------------|
+| 0x00000001    | Prevent sending data via Dual-MCU API                                                                                     |
+| 0x00000002    | Reserved                                                                                                                  |
+| 0x00000004    | Prevent starting stack via Dual-MCU API                                                                                   |
+| 0x00000008    | Prevent stopping stack via Dual-MCU API                                                                                   |
+| 0x00000010    | Prevent setting app config data via Dual-MCU API                                                                          |
+| 0x00000020    | Prevent reading app config data via Dual-MCU API                                                                          |
+| 0x00000040    | Prevent writing MSAP attributes via Dual-MCU API                                                                          |
+| 0x00000080    | Prevent reading MSAP attributes (except *mScratchpadBlockMax* and *mRouteCount*) via Dual-MCU API                         |
+| 0x00000100    | Prevent writing CSAP attributes (except *cFeatureLockKey*)                                                                |
+| 0x00000200    | Prevent reading CSAP attributes (except *cScratchpadSequence*) via Dual-MCU API                                           |
+| 0x00000400    | Reserved                                                                                                                  |
+| 0x00000800    | Reserved                                                                                                                  |
+| 0x00001000    | Prevent performing factory reset via Dual-MCU API                                                                         |
+| 0x00002000    | Prevent scratchpad write operations via Dual-MCU API                                                                      |
+| 0x00004000    | Reserved                                                                                                                  |
+| 0x00008000    | Prevent reading scratchpad status (including *mScratchpadBlockMax* and *cScratchpadSequence* attributes) via Dual-MCU API |
+| 0x00010000    | Reserved                                                                                                                  |
+| 0x00020000    | Reserved                                                                                                                  |
+| 0x00040000    | Reserved                                                                                                                  |
+| 0x00080000    | Reserved                                                                                                                  |
+| 0x00100000    | Reserved                                                                                                                  |
+| 0x00200000    | Prevent reading neighbor information (including *mRouteCount* attribute) via Dual-MCU API                                 |
+| 0x00400000    | Prevent scanning for neighbors via Dual-MCU API                                                                           |
+| 0x00800000    | Reserved                                                                                                                  |
+| 0x01000000    | Reserved                                                                                                                  |
+| 0x02000000    | Prevent affecting the sink cost via Dual-MCU API                                                                          |
+| 0x04000000    | Prevent reading the sink cost via Dual-MCU API                                                                            |
+| 0x08000000    | Reserved                                                                                                                  |
+| 0x10000000    | Reserved                                                                                                                  |
+| 0x20000000    | Prevent sending Remote API requests via Dual-MCU API                                                                      |
+| 0x40000000    | Reserved                                                                                                                  |
+| 0x80000000    | Prevent participating in OTAP operations                                                                                  |
+
+#### cFeatureLockKey
+
+| **Attribute ID** | **23**              |
+|------------------|---------------------|
+| Type             | Write only          |
+| Size             | 16 octets           |
+| Valid values     | 0x00..00 – 0xFF..FF |
+| Default value    | 0xFF..FF            |
+
+Attribute *cFeatureLockKey* sets the key that is used for enabling the feature
+lock. A value of 0xFF..FF means that the key is not set. Feature lock bits (see
+section
+[cFeatureLockBits](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cFeatureLockBits))
+are only in effect when a key is set.  
+When a feature lock key is set, it can only be cleared by writing
+*cFeatureLockKey* with the correct key. This clears the key, i.e. sets a key
+value with all bits set (0xFF..FF).  
+It is not possible to read the feature lock key back. However, it is possible to
+detect whether a key is set or not. When reading the key value, the error value
+4 (Failure: Invalid attribute value or attribute value not yet set) indicates
+that key is not set. And error value of 5 (Failure: Write-only attribute)
+indicates that the key has been set.
+
+# Sequence Numbers
+
+Some Wirepas Mesh stack services, such as the application configuration data
+service (sections [MSAP-APP_CONFIG_DATA_WRITE
+Service](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-APP_CONFIG_DATA_WRITE-Service)-[MSAP-APP_CONFIG_DATA_RX
+Service](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-APP_CONFIG_DATA_RX-Service))
+make use of 8-bit sequence numbers. When new data is entered on the network, the
+sequence number needs to be incremented, so that nodes can differentiate between
+old and new data.  
+Due to the limited numeric range of an 8-bit sequence number, the following
+wrap-around rule is utilized:
+
+-   A is larger than B if (A - B) AND 128 is 0, unless A equals B
+
+For example, values 0 to 127 are considered to be larger than 255, but values
+128 to 254 are considered smaller than 255. Likewise, values 1 to 128 are seen
+as greater than 0, but values 129 to 255 are seen as less than 0.
+
+# Common Use Cases
+
+This section describes various problem cases with Wirepas Mesh Dual-MCU API as
+well as guidance on various issues for the user.
+
+## Required Configuration
+
+Each node requires some configuration in order the Wirepas Mesh stack to operate
+and establish communication. The required services to be configured are
+explained in Table 72.
+
+  
+*Table 72. Required node configuration*
+
+| **Service**                                            | **See section**                                                                                                                                                                  | **Description**                                                                                                                                   |
+|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| *CSAP_ATTRIBUTE_WRITE / cNodeAddress*                  | [cNodeAddress](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cNodeAddress)                                             | A unique device identifier must be set. This is used to distinguish nodes from each other on a network.                                           |
+| *CSAP_ATTRIBUTE_WRITE / cNetworkAddress*               | [cNetworkAddress](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cNetworkAddress)                                       | Device network to join. Each device on a network must share the network address.                                                                  |
+| *CSAP_ATTRIBUTE_WRITE / cNetworkChannel*               | [cNetworkChannel](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cNetworkChannel)                                       | One channel in allocated specially for network operations and must be same for each device on a network.                                          |
+| *CSAP_ATTRIBUTE_WRITE / cNodeRole* (optional)          | [cNodeRole](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cNodeRole)                                                   | Role of a device must be set. Node can be a sink, a headnode capable of routing or a non-routing subnode.                                         |
+| *CSAP_ATTRIBUTE_WRITE / cCipherKey* (optional)         | [cCipherKey](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cCipherKey)                                                 | If encryption of network traffic is desired, a cipher key must be set. Without cipher or authentication keys the encryption is disabled.          |
+| *CSAP_ATTRIBUTE_WRITE / cAuthenticationKey* (optional) | [cAuthenticationKey](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#cAuthenticationKey)                                 | If encryption of network traffic is desired, an authentication key must be set. Without cipher or authentication keys the encryption is disabled. |
+| *MSAP-APP_CONFIG_DATA_WRITE (optional)*                | [MSAP-APP_CONFIG_DATA_WRITE Service](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-APP_CONFIG_DATA_WRITE-Service) | Note: This applies only for sinks! Headnodes or subnodes get their configuration data from the network and cannot have it set directly.           |
+| *MSAP_STACK_START*                                     | [MSAP-STACK_START Service](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#MSAP-STACK_START-Service)                     | Apply settings and begin communicating with other nodes on the network.                                                                           |
+
+# Annex A: Additional CRC Information
+
+This Annex gives an example CRC implementation and test vectors.
+
+## Example CRC Implementation
+
+  
+\#include \<stdint.h\>  
+// lut table size 512B (256 \* 16bit)  
+static const uint16_t crc_ccitt_lut[] =  
+{  
+0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, \\  
+0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef, \\  
+0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6, \\  
+0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de, \\  
+0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485, \\  
+0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d, \\  
+0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4, \\  
+0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc, \\  
+0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823, \\  
+0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b, \\  
+0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12, \\  
+0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a, \\  
+0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41, \\  
+0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49, \\  
+0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70, \\  
+0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78, \\  
+0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f, \\  
+0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067, \\  
+0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e, \\  
+0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256, \\  
+0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d, \\  
+0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405, \\  
+0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c, \\  
+0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634, \\  
+0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab, \\  
+0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3, \\  
+0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a, \\  
+0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92, \\  
+0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9, \\  
+0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1, \\  
+0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8, \\  
+0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0 \\  
+};  
+uint16_t Crc_fromBuffer(uint8_t \* buf, uint32_t len)  
+{  
+uint16_t crc = 0xffff;  
+uint8_t index;  
+for (uint32_t i = 0; i \< len; i++)  
+{  
+index = buf[i] \^ (crc \>\> 8);  
+crc = crc_ccitt_lut[index] \^ (crc \<\< 8);  
+}  
+return crc;  
+}
+
+## CRC Test Vectors
+
+*Table 73. CRC Test Vectors*
+
+| **CRC Input (octets in hex)**    | **CRC Output (octets in hex), LSB first** | **CRC input length (octets)** |
+|----------------------------------|-------------------------------------------|-------------------------------|
+| None                             | FF FF                                     | 0                             |
+| 0C 01 02 01 00                   | C2 B1                                     | 5                             |
+| 8C 01 05 00 01 00 01 05          | 48 33                                     | 8                             |
+| 0E 02 02 01 00                   | 9D 6E                                     | 5                             |
+| 8E 02 08 00 01 00 04 FF FF FF 00 | F2 4F                                     | 11                            |
+| 0D 03 07 01 00 04 01 00 00 00    | 8D C4                                     | 10                            |
+| 8D 03 01 00                      | 0x0A1F                                    | 4                             |
+
+# References
+
+[1] [Non-Router Long Sleep
+(NRLS)](https://developer.wirepas.com/a/solutions/articles/77000406955?portalId=77000019115)
+
+# Revision History
+
+| **Date**     | **Version** | **Notes**                                                                                                                                                                                                                          |
+|--------------|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 30 Jul 2020  | v5.0A       | Initial Version Online                                                                                                                                                                                                             |
+| 20 Nov 2020  | v5.0.2      | Removed TSAP as not supported in Wirepas Mesh v5 Clarified [UART Configuration](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#UART-Configuration) Removed IPv6 AppConfig |
