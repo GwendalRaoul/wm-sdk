@@ -104,7 +104,7 @@ Attributes are small pieces of data that affect the way the stack works, or are
 used to inform the application of the state of the stack. Before the stack can
 be started in normal operation, a few critical attributes need to be configured
 properly (see section [“Required
-Configuration”](Required-Configuration)).  
+Configuration”](#Required-Configuration)).  
 Attributes can either be read-only, readable and writable, or write-only. The
 attributes can also be persistent or non-persistent. If the attribute is
 persistent, its value will be retained over device power downs and stack stops,
