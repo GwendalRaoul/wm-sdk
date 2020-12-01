@@ -146,7 +146,7 @@ octet in the beginning of a frame.
 The general format of the serial frame is presented in Figure 2. Note that the
 different primitives and corresponding content of the payload (thick border in
 Figure 2) are specified in section “[Stack Service
-Specification](https://wirepas.atlassian.net/wiki/spaces/CD/pages/175047279/Wirepas+Mesh+Dual-MCU+API+Reference+Manual#Stack-Service-Specification)”.
+Specification](Stack-Service-Specification)”.
 The meaning of the different frame fields is described in Table 1.
 
 ![](media/6cd3ffd5e5a13fde0f737972d4d6df74.png)
