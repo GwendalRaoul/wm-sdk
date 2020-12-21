@@ -46,9 +46,10 @@ response. The general usage of the primitives is as follows (Also see Figure 1):
 -   A **response** is a reply from the application to the indication issued by
     the stack.
 
-![Primitive Figures](figures/Fig_ReqConf_IndRes.png)
+<p align="center">
+    <img src="figures/Fig_ReqConf_IndRes.png">
+</p>
 
-  
 *Figure 1. Primitive usage in the communication between the application and the
 stack*
 
