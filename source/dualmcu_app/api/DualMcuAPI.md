@@ -150,7 +150,9 @@ Figure 2) are specified in section “[Stack Service
 Specification](#Stack-Service-Specification)”.
 The meaning of the different frame fields is described in Table 1.
 
-![](media/6cd3ffd5e5a13fde0f737972d4d6df74.png)
+<p align="center">
+    <img src="figures/Fig_GenFormat.png">
+</p>
 
   
 *Figure 2. General format of the serial frame*
