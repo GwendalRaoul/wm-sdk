@@ -206,14 +206,14 @@ The meaning of the different frame fields is described in Table 1.
   
 Table 1. General serial frame fields
 
-| **Field**        | **Size** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|------------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *END*            | 1        | Frame separator, octet 0xC0.  Starts and ends a SLIP encoded frame. In addition two extra END-octets are used to wake up the stack side UART when starting communication.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| *Primitive ID*   | 1        | The identified of the used primitive. Different primitives and their primitive identifiers are specified in section [Stack Service Specification](#Stack-Service-Specification).  As a general rule:  Initiating primitives (request-primitives from the application side and indication-primitives from the stack side) have always the most significant bit set to 0.  Responding primitives (confirm-primitives from the stack side and response-primitives from the application side) always have the most significant bit set to 1.  Confirm.primitive_id = 0x80 request.primitive_id  Response.primitive_id = 0x80 indication.primitive_id |
-| *Frame ID*       | 1        | Frame identifier. The initiating peer decides the ID and responding peer uses the same value in the response frame:  The application decides the Frame ID for a request-primitive and the stack sends corresponding confirm-primitive with the same Frame ID.  The stack decides the Frame ID for an indication-primitive and the application sends corresponding response-primitive with the same Frame ID.                                                                                                                                                                                                                                                                                                                                            |
-| *Payload length* | 1        | The following payload length in octets, excluding the CRC octets.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| *Payload*        | *N1*     | The payload of the frame, depends on the primitive in question.  Different primitives and corresponding content of the payload are specified in section [Stack Service Specification](#Stack-Service-Specification).                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| *CRC*            | 2        | Checksum over the whole frame that has not been SLIP encoded, excluding the CRC octets. When receiving a frame, the SLIP encoding is removed and the CRC is calculated over the decoded frame. When sending a frame, the CRC is calculated first and SLIP encoding is employed after that.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Field**        | **Size** | **Description**  
+|------------------|----------|------------------
+| *END*            | 1        | Frame separator, octet 0xC0.  Starts and ends a SLIP encoded frame. In addition two extra END-octets are used to wake up the stack side UART when starting communication.
+| *Primitive ID*   | 1        | The identified of the used primitive. <p>Different primitives and their primitive identifiers are specified in section [Stack Service Specification](#Stack-Service-Specification). <p>As a general rule: <p>Initiating primitives (request-primitives from the application side and indication-primitives from the stack side) have always the most significant bit set to 0. Responding primitives (confirm-primitives from the stack side and response-primitives from the application side) always have the most significant bit set to 1.  <p> Confirm.primitive_id = 0x80 \| request.primitive_id  Response.primitive_id = 0x80 \| indication.primitive_id
+| *Frame ID*       | 1        | Frame identifier. The initiating peer decides the ID and responding peer uses the same value in the response frame:  The application decides the Frame ID for a request-primitive and the stack sends corresponding confirm-primitive with the same Frame ID.  The stack decides the Frame ID for an indication-primitive and the application sends corresponding response-primitive with the same Frame ID.
+| *Payload length* | 1        | The following payload length in octets, excluding the CRC octets.
+| *Payload*        | *N1*     | The payload of the frame, depends on the primitive in question.  Different primitives and corresponding content of the payload are specified in section [Stack Service Specification](#Stack-Service-Specification).
+| *CRC*            | 2        | Checksum over the whole frame that has not been SLIP encoded, excluding the CRC octets. When receiving a frame, the SLIP encoding is removed and the CRC is calculated over the decoded frame. When sending a frame, the CRC is calculated first and SLIP encoding is employed after that.
 
 **Note**: These fields are used only locally for the communication between the
 application MCU and the stack. They are not actually transmitted on the network.
@@ -373,12 +373,12 @@ The addresses are summarized in Table 4.
   
 *Table 4. Addressing summary*
 
-| **Address type** | **Valid address space**                                                                                     | **Description**                                                                                                                                                                                                                                                                                                                             |
-|------------------|-------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Unicast          | 0x00000001-  0x7FFFFFFF  (1 – 2 147 483 647)  and  0x81000000-  0xFFFFFFFD  (2 164 260 864 – 4 294 967 293) | Valid unicast addresses. Each node on the network must have one of these addresses set as its address. Two or more devices with identical addresses should never be present on a network.                                                                                                                                                   |
-| Broadcast        | 0xFFFF FFFF  (4 294 967 295)                                                                                | Broadcast address with which a packet is delivered to all nodes on the network                                                                                                                                                                                                                                                              |
-| AnySink          | 0xFFFFFFFE  (4 294 967 294)  or 0x00000000 (0)                                                              | Address which identifies that the source or the destination of a packet is an unspecified sink on the network  With current tree routing, only nodes may use this as the destination address when sending packets. These addresses are reserved as Wirepas reserved addresses and cannot be used as addresses for any nodes in the network. |
-| Multicast        | 0x80000000-  0x80FFFFFF  (2 147 483 648 –  2 164 260 863)                                                   | Packet is delivered to the group of nodes. Group may contain 0 or more nodes. Each node may belong to 0 or more groups. The lowest 24 bits contain the actual group address and highest bit is an indication that message is sent to that group.                                                                                            |
+| **Address type** | **Valid address space** | **Description** |
+|------------------|-------------------------|-----------------|
+| Unicast          | 0x00000001-  0x7FFFFFFF  (1 – 2 147 483 647)  and  0x81000000-  0xFFFFFFFD  (2 164 260 864 – 4 294 967 293) | Valid unicast addresses. Each node on the network must have one of these addresses set as its address. Two or more devices with identical addresses should never be present on a network.
+| Broadcast        | 0xFFFF FFFF  (4 294 967 295) | Broadcast address with which a packet is delivered to all nodes on the network
+| AnySink          | 0xFFFFFFFE  (4 294 967 294)  or 0x00000000 (0)  | Address which identifies that the source or the destination of a packet is an unspecified sink on the network  With current tree routing, only nodes may use this as the destination address when sending packets. These addresses are reserved as Wirepas reserved addresses and cannot be used as addresses for any nodes in the network.
+| Multicast        | 0x80000000-  0x80FFFFFF  (2 147 483 648 –  2 164 260 863) | Packet is delivered to the group of nodes. Group may contain 0 or more nodes. Each node may belong to 0 or more groups. The lowest 24 bits contain the actual group address and highest bit is an indication that message is sent to that group.
 
 ## Data Services (DSAP)
 
@@ -409,19 +409,19 @@ to set parameters. The DSAP-DATA_TX service includes the following primitives:
 The DSAP-DATA_TX.request is issued by the application when it wants to send
 data. Frame fields are described in the table below.
 
-| **Field Name**        | **Size** | **Valid Values**                             | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|-----------------------|----------|----------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*        | 1        | 0x01                                         | Identifier of DSAP-DATA_TX.request primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| *Frame ID*            | 1        | 0 – 255                                      | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| *PDUID*               | 2        | 0 – 65534                                    | PDU identifier decided by the application  The PDU ID can be used to keep track of APDUs processed by the stack as the same PDU ID is contained in a corresponding DSAP-DATA_TX.indication sent by the stack to the application. E.g. the application can keep the PDU in its own buffers until the successful transmission is indicated by the stack in DSAP-DATA_TX.indication.  PDU ID 65535 (0xFFFF) is reserved and should not be used.  Also see Note 1.                                                                                                                                                                                                                                                                                |
-| *SourceEndpoint*      | 1        | 0 – 239                                      | Source endpoint number  Also see Note 2.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| *DestinationAddress*  | 4        | 0 – 4294967295                               | Destination node address  Also see Note 3.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| *DestinationEndpoint* | 1        | 0 – 239                                      | Destination endpoint number  Also see Note 2.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| *QoS*                 | 1        | 0 or 1                                       | Quality of service class to be used. The different values are defined as follows:  0 = Use traffic class 0, i.e. normal priority 1 = Use traffic class 1, i.e. high priority.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| *TXOptions*           | 1        | 00xx xxxx  (bitfield, where x can be 0 or 1) | The TX options are indicated as a bit field with individual bits defined as follows:   Bit 0 = 0: Do not generate DSAP-DATA_TX.indication  Bit 0 = 1: Generate DSAP-DATA_TX.indication  Bit 0 is used to register for receiving a DSAP-DATA_TX.indication after the PDU has been successfully transmitted to next hop node or cleared from the PDU buffers due to timeout or congestion. Also see Note 1.   Bit 1 = 1, Use unacknowledged CSMA-CA transmission method  Bit 1 = 0, Use normal transmission method.  See Note 4.   Bits 2-5: Hop limit. Maximum number of hops executed for packet to reach the destination. See Note 5.   Bits 6-7: Reserved  Here, bit 0 is the least significant bit and bit 7 is the most significant bit.  |
-| *APDULength*          | 1        | 1 – 102                                      | The length of the following APDU in octets                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| *APDU*                | 1 – 102  | \-                                           | Application payload                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| *CRC*                 | 2        | \-                                           | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Field Name** | **Size** | **Valid Values** | **Description**                              |
+|----------------|----------|------------------|----------------------------------------------|
+| *Primitive ID* | 1        | 0x01             | Identifier of DSAP-DATA_TX.request primitive |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *PDUID*        | 2        | 0 – 65534        | PDU identifier decided by the application  The PDU ID can be used to keep track of APDUs processed by the stack as the same PDU ID is contained in a corresponding DSAP-DATA_TX.indication sent by the stack to the application. E.g. the application can keep the PDU in its own buffers until the successful transmission is indicated by the stack in DSAP-DATA_TX.indication.  PDU ID 65535 (0xFFFF) is reserved and should not be used.  Also see Note 1.
+| *SourceEndpoint* | 1      | 0 – 239          | Source endpoint number  Also see Note 2.
+| *DestinationAddress*  | 4 | 0 – 4294967295   | Destination node address  Also see Note 3.
+| *DestinationEndpoint* | 1 | 0 – 239          | Destination endpoint number  Also see Note 2.
+| *QoS*          | 1        | 0 or 1           | Quality of service class to be used. The different values are defined as follows:<p> - 0 = Use traffic class 0, i.e. normal priority<p> - 1 = Use traffic class 1, i.e. high priority.
+| *TXOptions*    | 1        | 00xx xxxx  (bitfield, where x can be 0 or 1) | The TX options are indicated as a bit field with individual bits defined as follows:<p> - Bit 0 = 0: Do not generate DSAP-DATA_TX.indication<p> - Bit 0 = 1: Generate DSAP-DATA_TX.indication  Bit 0 is used to register for receiving a DSAP-DATA_TX.indication after the PDU has been successfully transmitted to next hop node or cleared from the PDU buffers due to timeout or congestion. Also see Note 1.<p> - Bit 1 = 1, Use unacknowledged CSMA-CA transmission method<p> - Bit 1 = 0, Use normal transmission method.  See Note 4.<p> - Bits 2-5: Hop limit. Maximum number of hops executed for packet to reach the destination. See Note 5.<p> - Bits 6-7: Reserved <p>Here, bit 0 is the least significant bit and bit 7 is the most significant bit.
+| *APDULength*    | 1        | 1 – 102 | The length of the following APDU in octets 
+| *APDU*          | 1 – 102  | \-      | Application payload 
+| *CRC*           | 2        | \-      | See section [General Frame Format](#General-Frame-Format)
 
 **Note 1:** These fields are used only locally for the communication between the
 application layer and the stack. They are not actually transmitted on the
@@ -463,14 +463,14 @@ address as destination node address but is discarded.
 The DSAP-DATA_TX.confirm is issued by the stack as a response to the
 DSAP-DATA_TX.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-|----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x81             | Identifier of DSAP-DATA_TX.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| *PDUID*        | 2        | 0 – 65534        | PDU identifier set by the application in the corresponding DSAP-DATA_TX.request  This field is only used for data TX requests where an indication is requested, i.e. TX options bit 0 is set (see field TXOptions in section [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)). If no indication is requested, the value of this field is undefined.                                                                                                                                                                                                                                   |
-| *Result*       | 1        | 0 – 10           | The return result of the corresponding DSAP-DATA_TX.request. The different values are defined as follows:  0 = Success: PDU accepted for transmission 1 = Failure: Stack is stopped 2 = Failure: Invalid QoS-parameter 3 = Failure: Invalid TX options-parameter 4 = Failure: Out of memory  5 = Failure: Unknown destination address 6 = Failure: Invalid APDU length-parameter 7 = Failure: Cannot send indication 8 = Failure: PDUID is already in use  9 = Failure: Invalid src/dest end-point  10 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *Capacity*     | 1        | \-               | Number of PDUs that still can fit in the PDU buffer (see section [mPDUBufferCapacity](#mPDUBufferCapacity) for details)                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x81             | Identifier of DSAP-DATA_TX.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *PDUID*        | 2        | 0 – 65534        | PDU identifier set by the application in the corresponding DSAP-DATA_TX.request  This field is only used for data TX requests where an indication is requested, i.e. TX options bit 0 is set (see field TXOptions in section [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)). If no indication is requested, the value of this field is undefined.
+| *Result*       | 1        | 0 – 10           | The return result of the corresponding DSAP-DATA_TX.request. The different values are defined as follows:  <p> - 0 = Success: PDU accepted for transmission<p> - 1 = Failure: Stack is stopped<p> - 2 = Failure: Invalid QoS-parameter<p> - 3 = Failure: Invalid TX options-parameter<p> - 4 = Failure: Out of memory<p> -  5 = Failure: Unknown destination address<p> - 6 = Failure: Invalid APDU length-parameter<p> - 7 = Failure: Cannot send indication<p> - 8 = Failure: PDUID is already in use<p> -  9 = Failure: Invalid src/dest end-point<p> -  10 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *Capacity*     | 1        | \-               | Number of PDUs that still can fit in the PDU buffer (see section [mPDUBufferCapacity](#mPDUBufferCapacity) for details)
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### DSAP-DATA_TX_TT.request
 
@@ -478,27 +478,26 @@ The DSAP-DATA_TX_TT.request is identical to the DSAP-DATA_TX.request, except
 there is one extra field for setting buffering delay to an initial no-zero
 value. Frame fields are described in the table below.
 
-| **Field Name**        | **Size** | **Valid Values**                             | **Description**                                                                                                                                                                 |
-|-----------------------|----------|----------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*        | 1        | 0x1F                                         | Identifier of DSAP-DATA_TX_TT.request primitive                                                                                                                                 |
-| *Frame ID*            | 1        | 0 – 255                                      | See section [General Frame Format](#General-Frame-Format)                |
-| *PDUID*               | 2        | 0 – 65534                                    | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request) |
-| *SourceEndpoint*      | 1        | 0 – 239                                      | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request) |
-| *DestinationAddress*  | 4        | 0 – 4294967295                               | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request) |
-| *DestinationEndpoint* | 1        | 0 – 239                                      | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request) |
-| *QoS*                 | 1        | 0 or 1                                       | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request) |
-| *TXOptions*           | 1        | 00xx xxxx  (bitfield, where x can be 0 or 1) | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request) |
-| *BufferingDelay*      | 4        | 0 – 4 294 967 295                            | The time the PDU has been in the application buffers before it was transmitted over API.  Expressed in units of 1/128th of a second.                                            |
-| *APDULength*          | 1        | 1 – 102                                      | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request) |
-| *APDU*                | 1 – 102  | \-                                           | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request) |
-| *CRC*                 | 2        | \-                                           | See section [General Frame Format](#General-Frame-Format)                |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*        | 1        | 0x1F                                         | Identifier of DSAP-DATA_TX_TT.request primitive
+| *Frame ID*            | 1        | 0 – 255                                      | See section [General Frame Format](#General-Frame-Format)
+| *PDUID*               | 2        | 0 – 65534                                    | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)
+| *SourceEndpoint*      | 1        | 0 – 239                                      | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)
+| *DestinationAddress*  | 4        | 0 – 4294967295                               | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)
+| *DestinationEndpoint* | 1        | 0 – 239                                      | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)
+| *QoS*                 | 1        | 0 or 1                                       | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)
+| *TXOptions*           | 1        | 00xx xxxx  (bitfield, where x can be 0 or 1) | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)
+| *BufferingDelay*      | 4        | 0 – 4 294 967 295                            | The time the PDU has been in the application buffers before it was transmitted over API.  Expressed in units of 1/128th of a second.
+| *APDULength*          | 1        | 1 – 102                                      | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)
+| *APDU*                | 1 – 102  | \-                                           | See description in chapter [DSAP-DATA_TX.request](#DSAP-DATA_TX.request)
+| *CRC*                 | 2        | \-                                           | See section [General Frame Format](#General-Frame-Format)
 
 #### DSAP-DATA_TX_TT.confirm
 
 The DSAP-DATA_TX_TT.confirm is issued by the stack as a response to the
 DSAP-DATA_TX_TT.request. It is identical to DSAP-DATA_TX.confirm, explained in
-section
-[DSAP-DATA_TX.confirm](#DSAP-DATA_TX.confirm).
+section [DSAP-DATA_TX.confirm](#DSAP-DATA_TX.confirm).
 
 #### DSAP-DATA_TX.indication
 
@@ -510,18 +509,18 @@ sent only if the application registers it in the corresponding
 DSAP-DATA_TX.request's TX options parameter. Frame fields are described in the
 table below.
 
-| **Field Name**        | **Size** | **Valid Values** | **Description**                                                                                                                                                                  |
-|-----------------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*        | 1        | 0x02             | Identifier of DSAP-DATA_TX_TT.indication primitive                                                                                                                               |
-| *Frame ID*            | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                 |
-| *IndicationStatus*    | 1        | 0 or 1           | 0 = No other indications queued1 = More indications queued                                                                                                                       |
-| *PDUID*               | 2        | 0 – 65534        | PDU identifier set by the application in the corresponding DSAP-DATA_TX.request                                                                                                  |
-| *SourceEndpoint*      | 1        | 0 – 239          | Source endpoint number                                                                                                                                                           |
-| *DestinationAddress*  | 4        | 0 – 4294967295   | Destination node address set by the application in the corresponding DSAP-DATA_TX.request                                                                                        |
-| *DestinationEndpoint* | 1        | 0 – 239          | Destination endpoint number                                                                                                                                                      |
-| *BufferingDelay*      | 4        | \-               | The time the PDU has been in the stack buffers before it was transmitted. Reported in units of *BufferingDelay / 128* seconds i.e. *BufferingDelay \* 7.8125* milliseconds.      |
-| *Result*              | 1        | 0 or 1           | The return result of the corresponding DSAP-DATA_TX.request. The different values are defined as follows:  0 = Success: PDU was successfully sent 1 = Failure: PDU was discarded |
-| *CRC*                 | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                 |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------|
+| *Primitive ID*        | 1        | 0x02             | Identifier of DSAP-DATA_TX_TT.indication primitive
+| *Frame ID*            | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *IndicationStatus*    | 1        | 0 or 1           | 0 = No other indications queued1 = More indications queued
+| *PDUID*               | 2        | 0 – 65534        | PDU identifier set by the application in the corresponding DSAP-DATA_TX.request
+| *SourceEndpoint*      | 1        | 0 – 239          | Source endpoint number
+| *DestinationAddress*  | 4        | 0 – 4294967295   | Destination node address set by the application in the corresponding DSAP-DATA_TX.request
+| *DestinationEndpoint* | 1        | 0 – 239          | Destination endpoint number
+| *BufferingDelay*      | 4        | \-               | The time the PDU has been in the stack buffers before it was transmitted. Reported in units of *BufferingDelay / 128* seconds i.e. *BufferingDelay \* 7.8125* milliseconds.
+| *Result*              | 1        | 0 or 1           | The return result of the corresponding DSAP-DATA_TX.request. The different values are defined as follows: <p> - 0 = Success: PDU was successfully sent<p> - 1 = Failure: PDU was discarded
+| *CRC*                 | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### DSAP-DATA_RX Service
 
@@ -532,8 +531,7 @@ primitives:
 -   DSAP-DATA_RX.indication
 
 -   DSAP-DATA_RX.response (All response primitives have the same format, see
-    section [Response
-    Primitives](#Response-Primitives))
+    section [Response Primitives](#Response-Primitives))
 
 #### DSAP-DATA_RX.indication
 
@@ -541,20 +539,20 @@ The DSAP-DATA_RX.indication is issued by the stack when it receives data from
 the network destined to this node. Frame fields are described in the table
 below.
 
-| **Field Name**        | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                              |
-|-----------------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*        | 1        | 0x03             | Identifier of DSAP-DATA_RX.indication primitive                                                                                                                                                                                                                                                                                                                                                                                              |
-| *Frame ID*            | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                             |
-| *IndicationStatus*    | 1        | 0 or 1           | 0 = No other indications queued1 = More indications queued                                                                                                                                                                                                                                                                                                                                                                                   |
-| *SourceAddress*       | 4        | 0 – 4294967295   | Source node address                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| *SourceEndpoint*      | 1        | 0 – 239          | Source endpoint number                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| *DestinationAddress*  | 4        | 0 – 4294967295   | Destination node address                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| *DestinationEndpoint* | 1        | 0 – 239          | Destination endpoint number                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| *QoS + Hop count*     | 1        | 0 – 255          | Bits 0-1 (LSB): Quality of service class to be used. The different values are defined as follows:  0 = Use traffic class 0, i.e. normal priority 1 = Use traffic class 1, i.e. high priority   Bits 2-7: Hop count: how many hops were used to transmit the data to the destination (1-n hops)   For example, value 0x29 (0b00101001) tells that high priority data was received and ten hops were used to transmit data to the destination. |
-| *TravelTime*          | 4        | \-               | Travel time of the PDU on the network. Reported in units of *TravelTime / 128* seconds i.e. *TravelTime \* 7.8125* milliseconds.                                                                                                                                                                                                                                                                                                             |
-| *APDULength*          | 1        | \-               | The length of the following APDU in octets                                                                                                                                                                                                                                                                                                                                                                                                   |
-| *APDU*                | 1 – 102  | \-               | Application payload                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| *CRC*                 | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                             |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*        | 1        | 0x03             | Identifier of DSAP-DATA_RX.indication primitive
+| *Frame ID*            | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *IndicationStatus*    | 1        | 0 or 1           | 0 = No other indications queued1 = More indications queued
+| *SourceAddress*       | 4        | 0 – 4294967295   | Source node address
+| *SourceEndpoint*      | 1        | 0 – 239          | Source endpoint number
+| *DestinationAddress*  | 4        | 0 – 4294967295   | Destination node address
+| *DestinationEndpoint* | 1        | 0 – 239          | Destination endpoint number
+| *QoS + Hop count*     | 1        | 0 – 255          | Bits 0-1 (LSB): Quality of service class to be used. The different values are defined as follows:  <p> - 0 = Use traffic class 0, i.e. normal priority 1 = Use traffic class 1, i.e. high priority <p> - Bits 2-7: Hop count: how many hops were used to transmit the data to the destination (1-n hops)<p> For example, value 0x29 (0b00101001) tells that high priority data was received and ten hops were used to transmit data to the destination.
+| *TravelTime*          | 4        | \-               | Travel time of the PDU on the network. Reported in units of *TravelTime / 128* seconds i.e. *TravelTime \* 7.8125* milliseconds.
+| *APDULength*          | 1        | \-               | The length of the following APDU in octets
+| *APDU*                | 1 – 102  | \-               | Application payload
+| *CRC*                 | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ## Management Services (MSAP)
 
@@ -618,12 +616,12 @@ The MSAP-INDICATION_POLL.request frame does not contain any payload.
 The MSAP-INDICATION_POLL.confirm is issued by the stack as a response to the
 MSAP-INDICATION_POLL.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                            |
-|----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x84             | Identifier of MSAP-INDICATION_POLL.confirm primitive                                                                                                                                                                       |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                           |
-| *Result*       | 1        | 0 or 1           | The return result of the corresponding MSAP-INDICATION_POLL.request. The different values are defined as follows:  1 = Pending indications exist and stack will start sending the indication(s) 0 = No pending indications |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                           |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x84             | Identifier of MSAP-INDICATION_POLL.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 or 1           | The return result of the corresponding MSAP-INDICATION_POLL.request. The different values are defined as follows:<p> - 1 = Pending indications exist and stack will start sending the indication(s)<p> - 0 = No pending indications
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-STACK_START Service
 
@@ -639,12 +637,12 @@ MSAP-STACK_START service includes the following primitives:
 The MSAP-STACK_START.request issued by the application layer when the stack
 needs to be started. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values**                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                    |
-|----------------|----------|------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x05                               | Identifier of MSAP-STACK_START.request primitive                                                                                                                                                                                                                                                                                                                                                                   |
-| *Frame ID*     | 1        | 0 – 255                            | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                   |
-| *StartOptions* | 1        | 0000 000x  (where x can be 0 or 1) | The stack start options are indicated as a bit field with individual bits defined as follows:  Bit 0 = 0: Start stack with auto-start disabled, see Note, below Bit 0 = 1: Start stack with auto-start enabled Bit 1: Reserved Bit 2: Reserved Bit 3: Reserved Bit 4: Reserved Bit 5: Reserved Bit 6: Reserved  Bit 7: Reserved  , where bit 0 is the least significant bit and bit 7 is the most significant bit. |
-| *CRC*          | 2        | \-                                 | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                   |
+| **Field Name** | **Size** | **Valid Values**                   | **Description** |                                                                                              
+|----------------|----------|------------------------------------|-----------------|
+| *Primitive ID* | 1        | 0x05                               | Identifier of MSAP-STACK_START.request primitive 
+| *Frame ID*     | 1        | 0 – 255                            | See section [General Frame Format](#General-Frame-Format)
+| *StartOptions* | 1        | 0000 000x  (where x can be 0 or 1) | The stack start options are indicated as a bit field with individual bits defined as follows:<p> - Bit 0 = 0: Start stack with auto-start disabled, see Note, below<p> - Bit 0 = 1: Start stack with auto-start enabled<p> - Bit 1: Reserved<p> - Bit 2: Reserved<p> - Bit 3: Reserved<p> - Bit 4: Reserved<p> - Bit 5: Reserved<p> - Bit 6: Reserved<p> -  Bit 7: Reserved<p>where bit 0 is the least significant bit and bit 7 is the most significant bit.
+| *CRC*          | 2        | \-                                 | See section [General Frame Format](#General-Frame-Format)
 
 **The MSAP-STACK_START.confirm issued by the stack as a response to the
 MSAP-STACK_START.request.**
@@ -654,12 +652,12 @@ MSAP-STACK_START.request.**
 The MSAP-STACK_START.confirm issued by the stack as a response to the
 MSAP-STACK_START.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values**                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|----------------|----------|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x85                               | Identifier of MSAP-STACK_START.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| *Frame ID*     | 1        | 0 – 255                            | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| *Result*       | 1        | 000x xxxx  (where x can be 0 or 1) | The return result of the corresponding MSAP-STACK_START.request. The result is indicated as a bit field with individual bits defined as follows:  0x00: Success: Stack started Bit 0 = 1: Failure: Stack remains stopped Bit 1 = 1: Failure: Network address missing Bit 2 = 1: Failure: Node address missing Bit 3 = 1: Failure: Network channel missing Bit 4 = 1: Failure: Role missing Bit 5 = 1: Failure: Application configuration data missing (valid only on sink device) Bit 6: Reserved  Bit 7 = 1: Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))  , where bit 0 is the least significant bit and bit 7 is the most significant bit. |
-| *CRC*          | 2        | \-                                 | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x85             | Identifier of MSAP-STACK_START.confirm primitive 
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 000x xxxx  (where x can be 0 or 1) | The return result of the corresponding MSAP-STACK_START.request. The result is indicated as a bit field with individual bits defined as follows: <p> - 0x00: Success: Stack started<p> - Bit 0 = 1: Failure: Stack remains stopped<p> - Bit 1 = 1: Failure: Network address missing<p> - Bit 2 = 1: Failure: Node address missing<p> - Bit 3 = 1: Failure: Network channel missing<p> - Bit 4 = 1: Failure: Role missing<p> - Bit 5 = 1: Failure: Application configuration data missing (valid only on sink device)<p> - Bit 6: Reserved<p> -  Bit 7 = 1: Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) <p>where bit 0 is the least significant bit and bit 7 is the most significant bit.
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-STACK_STOP Service
 
@@ -680,8 +678,7 @@ has the following side effects:
 
 -   If there is a new OTAP scratchpad that has been marked to be processed, the
     bootloader will process it, e.g. update the stack firmware (see section
-    [MSAP-SCRATCHPAD
-    Services](#MSAP-SCRATCHPAD-Services))
+    [MSAP-SCRATCHPAD Services](#MSAP-SCRATCHPAD-Services))
 
 Note:A successful MSAP-STACK_STOP.request sets the MSAP auto-start attribute to
 disabled. For more information on the auto-start feature, see section
@@ -694,20 +691,19 @@ The MSAP-STACK_STOP.request frame does not contain any payload.
 The MSAP-STACK_STOP.confirm issued by the stack as a response to the
 MSAP-STACK_STOP.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                      |
-|----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x06             | Identifier of MSAP-STACK_STOP.confirm primitive                                                                                                                                                                                                                                                                                                                      |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                     |
-| *Result*       | 1        | 0, 1 or 128      | The return result of the corresponding MSAP-STACK_STOP.request. The different values are defined as follows:  0 = Success: Stack stopped 1 = Failure: Stack already stopped  128 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                     |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x06             | Identifier of MSAP-STACK_STOP.confirm primitive 
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0, 1 or 128      | The return result of the corresponding MSAP-STACK_STOP.request. The different values are defined as follows:<p> - 0 = Success: Stack stopped<p> - 1 = Failure: Stack already stopped<p> - 128 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 **Note:** After device has sent the MSAP-STACK_STOP.confirm message, device is
 rebooted. This takes a while. During the rebooting, the device does not respond
 to messages. One example of how to detect when the rebooting has been done is to
 issue read-only commands to the device and when it responses to such, the
 rebooting has been performed. For example, use MSAP-ATTRIBUTE_READ command (see
-section [MSAP-ATTRIBUTE_READ
-Service](#MSAP-ATTRIBUTE_READ-Service))
+section [MSAP-ATTRIBUTE_READ Service](#MSAP-ATTRIBUTE_READ-Service))
 to query attribute
 [mStackStatus](#mStackStatus).
 
@@ -719,27 +715,25 @@ service includes the following primitives:
 -   MSAP-STACK_STATE.indication
 
 -   MSAP-STACK_STATE.response (All response primitives have the same format, see
-    section [Response
-    Primitives](#Response-Primitives))
+    section [Response Primitives](#Response-Primitives))
 
 #### MSAP-STACK_STATE.indication
 
 The MSAP-STACK_STATE.indication is issued by the stack when it has booted. Frame
 fields are described in the table below.
 
-| **Field Name**     | **Size** | **Valid Values**                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-|--------------------|----------|------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*     | 1        | 0x07                               | Identifier of MSAP-STACK_STATE.indication primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| *Frame ID*         | 1        | 0 – 255                            | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| *IndicationStatus* | 1        | 0 or 1                             | 0 = No other indications queued1 = More indications queued                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| *Status*           | 1        | 0xxx xxxx  (where x can be 0 or 1) | The stack status is indicated as a bit field with individual bits defined as follows:  Bit 0 = 0: Stack running, see Note below Bit 0 = 1: Stack stopped Bit 1 = 0: Network address set Bit 1 = 1: Network address missing Bit 2 = 0: Node address set Bit 2 = 1: Node address missing Bit 3 = 0: Network channel set Bit 3 = 1: Network channel missing Bit 4 = 0: Role set Bit 4 = 1: Role missing Bit 5 = 0: Application configuration data valid Bit 5 = 1: Application configuration data missing (valid only on sink device) Bit 7: Reserved  , where bit 0 is the least significant bit and bit 7 is the most significant bit. |
-| *CRC*              | 2        | \-                                 | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x07             | Identifier of MSAP-STACK_STATE.indication primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *IndicationStatus* | 1    | 0 or 1           | 0 = No other indications queued1 = More indications queued
+| *Status*           | 1    | 0xxx xxxx  (where x can be 0 or 1) | The stack status is indicated as a bit field with individual bits defined as follows:  <p> - Bit 0 = 0: Stack running, see Note below<p> - Bit 0 = 1: Stack stopped<p> - Bit 1 = 0: Network address set<p> - Bit 1 = 1: Network address missing<p> - Bit 2 = 0: Node address set<p> - Bit 2 = 1: Node address missing<p> - Bit 3 = 0: Network channel set<p> - Bit 3 = 1: Network channel missing<p> - Bit 4 = 0: Role set<p> - Bit 4 = 1: Role missing<p> - Bit 5 = 0: Application configuration data valid<p> - Bit 5 = 1: Application configuration data missing (valid only on sink device)<p> - Bit 7: Reserved  <p>where bit 0 is the least significant bit and bit 7 is the most significant bit.
+| *CRC*              | 2        | \-           | See section [General Frame Format](#General-Frame-Format)
 
 **Note:** If the stack sends an MSAP-STACK_STATE.indication where the status bit
 0 = 0, it means that the stack has auto-started. If the status bit 0 = 1, it
 means that auto-start is disabled. For more information on the auto-start
-feature, see section
-[mAutostart](#mAutostart).
+feature, see section [mAutostart](#mAutostart).
 
 ### MSAP-APP_CONFIG_DATA_WRITE Service
 
@@ -779,14 +773,14 @@ The MSAP-APP_CONFIG_DATA_WRITE.request is issued by the application when it
 wants to set or change the network configuration data contents. Frame fields are
 described in the table below.
 
-| **Field Name**           | **Size** | **Valid Values**                                   | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-|--------------------------|----------|----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*           | 1        | 0x3A                                               | Identifier of MSAP-APP_CONFIG_DATA_WRITE.request primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| *Frame ID*               | 1        | 0 – 255                                            | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| *SequenceNumber*         | 1        | 0 – 254, default value is 0                        | Sequence number for filtering old and already received application configuration data packets at the nodes.  The sequence number must be increment by 1 every time new configuration is written, i.e. new diagnostic data interval and/or new application configuration data is updated. See section [Sequence Numbers](#Sequence-Numbers) for details.  A sequence number that is the current value of existing application configuration data is invalid. A value of 255 is invalid. Therefore, after value of 254, the next valid value is 0. |
-| *DiagnosticDataInterval* | 2        | 0, 30, 60, 120, 300, 600, 1800, default value is 0 | Diagnostic data transmission interval in seconds, i.e. how often the nodes on the network should send diagnostic PDUs.  If the value is 0, diagnostic data transmission is disabled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| *AppConfigData*          | X        | Raw hex data, default value is filled with 0x00    | Application configuration data. The format can be decided by the application.  Size of the field is defined by CSAP attribute cAppConfigDataSize (see section [cAppConfigDataSize](#cAppConfigDataSize))                                                                                                                                                                                                                                                                                                                                         |
-| *CRC*                    | 2        | \-                                                 | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x3A             | Identifier of MSAP-APP_CONFIG_DATA_WRITE.request primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *SequenceNumber* | 1      | 0 – 254, default value is 0   | Sequence number for filtering old and already received application configuration data packets at the nodes.  The sequence number must be increment by 1 every time new configuration is written, i.e. new diagnostic data interval and/or new application configuration data is updated. See section [Sequence Numbers](#Sequence-Numbers) for details.  A sequence number that is the current value of existing application configuration data is invalid. A value of 255 is invalid. Therefore, after value of 254, the next valid value is 0.
+| *DiagnosticDataInterval* | 2  | 0, 30, 60, 120, 300, 600, 1800, default value is 0 | Diagnostic data transmission interval in seconds, i.e. how often the nodes on the network should send diagnostic PDUs.  If the value is 0, diagnostic data transmission is disabled.
+| *AppConfigData* | X  | Raw hex data, default value is filled with 0x00    | Application configuration data. The format can be decided by the application.  Size of the field is defined by CSAP attribute cAppConfigDataSize (see section [cAppConfigDataSize](#cAppConfigDataSize))
+| *CRC*           | 2  | \-                                                 | See section [General Frame Format](#General-Frame-Format)
 
 **Note:** It is recommended that the configuration data is not written too
 often, as new configuration data is always written to the non-volatile memory of
@@ -800,12 +794,12 @@ The MSAP-APP_CONFIG_DATA_WRITE.confirm is issued by the stack in response to the
 MSAP-APP_CONFIG_DATA_WRITE.request. Frame fields are described in the table
 below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0xBA             | Identifier of MSAP-APP_CONFIG_DATA_WRITE.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                     |
-| *Result*       | 1        | 0 – 4            | The return result of the corresponding MSAP-APP_CONFIG_DATA_WRITE.request. The different values are defined as follows:  0 = Success: New configuration written to sink's non-volatile memory and scheduled for transmission 1 = Failure: The node is not a sink  2 = Failure: Invalid DiagnosticDataInterval value 3 = Failure: Invalid SequenceNumber value  4 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0xBA             | Identifier of MSAP-APP_CONFIG_DATA_WRITE.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 4            | The return result of the corresponding MSAP-APP_CONFIG_DATA_WRITE.request. The different values are defined as follows: <br> - 0 = Success: New configuration written to sink's non-volatile memory and scheduled for transmission <br> - 1 = Failure: The node is not a sink  <br> - 2 = Failure: Invalid DiagnosticDataInterval value <br> - 3 = Failure: Invalid SequenceNumber value  <br> - 4 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-APP_CONFIG_DATA_READ Service
 
@@ -833,15 +827,15 @@ The MSAP-APP_CONFIG_DATA_READ.confirm is issued by the stack in response to the
 MSAP-APP_CONFIG_DATA_READ.request. Frame fields are described in the table
 below.
 
-| **Field Name**           | **Size** | **Valid Values**               | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|--------------------------|----------|--------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*           | 1        | 0xBB                           | Identifier of MSAP-APP_CONFIG_DATA_READ.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| *Frame ID*               | 1        | 0 – 255                        | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| *Result*                 | 1        | 0 – 2                          | Return result for the corresponding MSAP-APP_CONFIG_DATA_READ.request. The different values are defined as follows:  0 = Success: Configuration received/set 1 = Failure: No configuration received/set  2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))  When used with nodes, indicates whether configuration has been received from neighbors. When used with sinks, indicates whether configuration has already been set (by using MSAP-APP_CONFIG_DATA_WRITE service). |
-| *SequenceNumber*         | 1        | 0 – 254                        | Sequence number for filtering old and already received application configuration data packets at the nodes. This parameter can be used by the application to decide if the configuration data has been updated. See section [Sequence Numbers](#Sequence-Numbers) for details.  The returned value is never 255.                                                                                                                                                                                           |
-| *DiagnosticDataInterval* | 2        | 0, 30, 60, 120, 300, 600, 1800 | Diagnostic data transmission interval in seconds, i.e. how often the stack should send diagnostic PDUs  If the value is 0, diagnostic data transmission is disabled.                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| *AppConfigData*          | X        | \-                             | Application configuration data. The format can be decided by the application.  Size of the field is defined by CSAP attribute cAppConfigDataSize (see section [cAppConfigDataSize](#cAppConfigDataSize))                                                                                                                                                                                                                                                                                                   |
-| *CRC*                    | 2        | \-                             | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*           | 1        | 0xBB                           | Identifier of MSAP-APP_CONFIG_DATA_READ.confirm primitive
+| *Frame ID*               | 1        | 0 – 255                        | See section [General Frame Format](#General-Frame-Format)
+| *Result*                 | 1        | 0 – 2                          | Return result for the corresponding MSAP-APP_CONFIG_DATA_READ.request. The different values are defined as follows:<p> - 0 = Success: Configuration received/set<p> - 1 = Failure: No configuration received/set<p> - 2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))  <p>When used with nodes, indicates whether configuration has been received from neighbors. When used with sinks, indicates whether configuration has already been set (by using MSAP-APP_CONFIG_DATA_WRITE service).
+| *SequenceNumber*         | 1        | 0 – 254                        | Sequence number for filtering old and already received application configuration data packets at the nodes. This parameter can be used by the application to decide if the configuration data has been updated. See section [Sequence Numbers](#Sequence-Numbers) for details.  The returned value is never 255.
+| *DiagnosticDataInterval* | 2        | 0, 30, 60, 120, 300, 600, 1800 | Diagnostic data transmission interval in seconds, i.e. how often the stack should send diagnostic PDUs  <p>If the value is 0, diagnostic data transmission is disabled.
+| *AppConfigData*          | X        | \-                             | Application configuration data. The format can be decided by the application.  Size of the field is defined by CSAP attribute cAppConfigDataSize (see section [cAppConfigDataSize](#cAppConfigDataSize))
+| *CRC*                    | 2        | \-                             | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-APP_CONFIG_DATA_RX Service
 
@@ -890,26 +884,26 @@ The MSAP-ATTRIBUTE_WRITE.request is issued by the application when it wants to
 set or change the MSAP attributes. Frame fields are described in the table
 below.
 
-| **Field Name**    | **Size** | **Valid Values**                                                                                                                                                                 | **Description**                                                                                                                                                  |
-|-------------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*    | 1        | 0x0B                                                                                                                                                                             | Identifier of MSAP-ATTRIBUTE_WRITE.request primitive                                                                                                             |
-| *Frame ID*        | 1        | 0 – 255                                                                                                                                                                          | See section [General Frame Format](#General-Frame-Format) |
-| *AttributeID*     | 2        | Depends on the attribute. See section [MSAP Attributes](#MSAP-Attributes) | The ID of the attribute that is written                                                                                                                          |
-| *AttributeLength* | 1        |                                                                                                                                                                                  | The length (in octets) of the attribute that is written                                                                                                          |
-| *AttributeValue*  | 1 – 16   |                                                                                                                                                                                  | The value that is written to the attribute specified by the set attribute ID                                                                                     |
-| *CRC*             | 2        | \-                                                                                                                                                                               | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x0B             | Identifier of MSAP-ATTRIBUTE_WRITE.request primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *AttributeID*  | 2        | Depends on the attribute. See section [MSAP Attributes](#MSAP-Attributes) | The ID of the attribute that is written
+| *AttributeLength* | 1     | \-               | The length (in octets) of the attribute that is written
+| *AttributeValue*  | 1 – 16| \-               | The value that is written to the attribute specified by the set attribute ID 
+| *CRC*             | 2     | \-               | See section [General Frame Format](#General-Frame-Format) |
 
 #### MSAP-ATTRIBUTE_WRITE.confirm
 
 The MSAP-ATTRIBUTE_WRITE.confirm is issued by the stack in response to the
 MSAP-ATTRIBUTE_WRITE.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                       |
-|----------------|----------|------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x8B             | Identifier of MSAP-ATTRIBUTE_WRITE.confirm primitive                                                                                                                                                                                                                                                                                                                                                  |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                      |
-| *Result*       | 1        | 0 – 6            | The return result of the corresponding MSAP-ATTRIBUTE_WRITE.request. The different values are defined as follows:  0 = Success 1 = Failure: Unsupported attribute ID 2 = Failure: Stack in invalid state to write attribute 3 = Failure: Invalid attribute length 4 = Failure: Invalid attribute value  5 = Reserved  6 = Failure: Access denied (e.g. attribute read prevented by feature lock bits) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                      |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x8B             | Identifier of MSAP-ATTRIBUTE_WRITE.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 6            | The return result of the corresponding MSAP-ATTRIBUTE_WRITE.request. The different values are defined as follows: <p> - 0 = Success<p> - 1 = Failure: Unsupported attribute ID<p> - 2 = Failure: Stack in invalid state to write attribute<p> - 3 = Failure: Invalid attribute length<p> - 4 = Failure: Invalid attribute value<p> -  5 = Reserved<p> -  6 = Failure: Access denied (e.g. attribute read prevented by feature lock bits)
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-ATTRIBUTE_READ Service
 
@@ -926,27 +920,27 @@ includes the following primitives:
 The MSAP-ATTRIBUTE_READ.request is issued by the application when it wants to
 read the MSAP attributes. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values**                                                                                                                                                                 | **Description**                                                                                                                                                  |
-|----------------|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x0C                                                                                                                                                                             | Identifier of MSAP-ATTRIBUTE_READ.request primitive                                                                                                              |
-| *Frame ID*     | 1        | 0 – 255                                                                                                                                                                          | See section [General Frame Format](#General-Frame-Format) |
-| *AttributeID*  | 2        | Depends on the attribute. See section [MSAP Attributes](#MSAP-Attributes) | The ID of the attribute that is read                                                                                                                             |
-| *CRC*          | 2        | \-                                                                                                                                                                               | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x0C             | Identifier of MSAP-ATTRIBUTE_READ.request primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *AttributeID*  | 2        | Depends on the attribute. See section [MSAP Attributes](#MSAP-Attributes) | The ID of the attribute that is read
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-ATTRIBUTE_READ.confirm
 
 The MSAP- ATTRIBUTE_READ.confirm is issued by the stack in response to the
 MSAP-ATTRIBUTE_READ.request. Frame fields are described in the table below.
 
-| **Field Name**    | **Size** | **Valid Values**                                                                                                                                                                  | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|-------------------|----------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*    | 1        | 0x8C                                                                                                                                                                              | Identifier of MSAP-ATTRIBUTE_READ.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                           |
-| *Frame ID*        | 1        | 0 – 255                                                                                                                                                                           | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                              |
-| *Result*          | 1        | 0 – 6                                                                                                                                                                             | The return result of the corresponding MSAP-ATTRIBUTE_READ.request. The different values are defined as follows:  0 = Success 1 = Failure: Unsupported attribute ID 2 = Failure: Stack in invalid state to read attribute 4 = Failure: Invalid attribute value or attribute value not yet set 5 = Failure: Write-only attribute (e.g. the encryption and authentication keys) 6 = Failure: Access denied (e.g. attribute read prevented by feature lock bits) |
-| *AttributeID*     | 2        | Depends on the attribute. See section [MSAP Attributes](#MSAP-Attributes). | The ID of the attribute that is read                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| *AttributeLength* | 1        |                                                                                                                                                                                   | The length (in octets) of the attribute that is read                                                                                                                                                                                                                                                                                                                                                                                                          |
-| *AttributeValue*  | 1 – 16   |                                                                                                                                                                                   | The value of the read attribute specified by the set attribute ID. This value of the attribute is only present if *Result* is 0 (Success).                                                                                                                                                                                                                                                                                                                    |
-| *CRC*             | 2        | \-                                                                                                                                                                                | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                              |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*    | 1     | 0x8C             | Identifier of MSAP-ATTRIBUTE_READ.confirm primitive
+| *Frame ID*        | 1     | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*          | 1     | 0 – 6            | The return result of the corresponding MSAP-ATTRIBUTE_READ.request. The different values are defined as follows: <p> - 0 = Success<p> - 1 = Failure: Unsupported attribute ID<p> - 2 = Failure: Stack in invalid state to read attribute<p> - 4 = Failure: Invalid attribute value or attribute value not yet set<p> - 5 = Failure: Write-only attribute (e.g. the encryption and authentication keys)<p> - 6 = Failure: Access denied (e.g. attribute read prevented by feature lock bits)
+| *AttributeID*     | 2      | Depends on the attribute. See section [MSAP Attributes](#MSAP-Attributes). | The ID of the attribute that is read
+| *AttributeLength* | 1      |                 | The length (in octets) of the attribute that is read
+| *AttributeValue*  | 1 – 16 |                 | The value of the read attribute specified by the set attribute ID. This value of the attribute is only present if *Result* is 0 (Success)
+| *CRC*             | 2      | \-              | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-GET_NBORS Service
 
@@ -972,21 +966,21 @@ a block of zeros is returned.
 The neighbor info frame contains information for a maximum of eight neighbors.
 Frame fields are described in the table below.
 
-| **Field Name**      | **Size** | **Valid Values**                    | **Description**                                                                                                                                                  |
-|---------------------|----------|-------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*      | 1        | 0xA0                                | Identifier of MSAP-GET_NBORS.confirm primitive                                                                                                                   |
-| *Frame ID*          | 1        | 0 – 255                             | See section [General Frame Format](#General-Frame-Format) |
-| *NumberOfNeighbors* | 1        | 0 – 8                               | Number of neighbors' information returned. 0 if there are no neighbors.                                                                                          |
-| *NeighborAddress*   | 4        | 0 – 4294967295                      | Address of the neighbor node                                                                                                                                     |
-| *LinkReliability*   | 1        | 0 – 255                             | Link reliability to the neighboring node. Scaled so that 0 = 0 %, 255 = 100 %                                                                                    |
-| *NormalizedRSSI*    | 1        | 0 – 255                             | Received signal strength, compensated with transmission power. Larger value means better the signal.  0: No signal 1: Signal heard barely\>50: Good signal       |
-| *Cost*              | 1        | 1 – 255                             | Route cost to the sink via this neighbor. Value 255 indicates that a neighbor has no route to a sink.                                                            |
-| *Channel*           | 1        | 1 – CSAP attribute *cChannelLimits* | Radio channel used by the neighbor                                                                                                                               |
-| *NeighborType*      | 1        | 0 – 2                               | Type of neighbor  0: Neighbor is next hop cluster, i.e. used as a route to sink 1: Neighbor is a member of this node 2: Neighbor is a cluster from network scan  |
-| *TxPower*           | 1        | 0 – X                               | Power level used for transmission  0: Lowest power  X: Highest power (depending on the stack profile)                                                            |
-| *RxPower*           | 1        | 0 – X                               | Received power level  0: Lowest power  X: Highest power (depending on the stack profile)                                                                         |
-| *LastUpdate*        | 2        | 0 – 65535                           | Amount of seconds since these values were last updated                                                                                                           |
-| *CRC*               | 2        | \-                                  | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*      | 1        | 0xA0                                | Identifier of MSAP-GET_NBORS.confirm primitive
+| *Frame ID*          | 1        | 0 – 255                             | See section [General Frame Format](#General-Frame-Format)
+| *NumberOfNeighbors* | 1        | 0 – 8                               | Number of neighbors' information returned. 0 if there are no neighbors
+| *NeighborAddress*   | 4        | 0 – 4294967295                      | Address of the neighbor node
+| *LinkReliability*   | 1        | 0 – 255                             | Link reliability to the neighboring node. Scaled so that 0 = 0 %, 255 = 100 %
+| *NormalizedRSSI*    | 1        | 0 – 255                             | Received signal strength, compensated with transmission power. Larger value means better the signal.  0: No signal 1: Signal heard barely\>50: Good signal
+| *Cost*              | 1        | 1 – 255                             | Route cost to the sink via this neighbor. Value 255 indicates that a neighbor has no route to a sink.
+| *Channel*           | 1        | 1 – CSAP attribute *cChannelLimits* | Radio channel used by the neighbor
+| *NeighborType*      | 1        | 0 – 2                               | Type of neighbor <p> - 0: Neighbor is next hop cluster, i.e. used as a route to sink<p> - 1: Neighbor is a member of this node<p> - 2: Neighbor is a cluster from network scan
+| *TxPower*           | 1        | 0 – X                               | Power level used for transmission<p> - 0: Lowest power<p> - X: Highest power (depending on the stack profile)
+| *RxPower*           | 1        | 0 – X                               | Received power level<p> - 0: Lowest power<p> - X: Highest power (depending on the stack profile)
+| *LastUpdate*        | 2        | 0 – 65535                           | Amount of seconds since these values were last updated
+| *CRC*               | 2        | \-                                  | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-SCAN_NBORS Service
 
@@ -1016,12 +1010,12 @@ This confirm tells result which is always success. After application has asked
 to scan neighbors so stack code use signal to handle it. Frame fields are
 described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                            |
-|----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0xA1             | Identifier of MSAP-SCAN_NBORS.confirm primitive                                                                                                                                                                                                                                                                            |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                           |
-| *Result*       | 1        | 0 – 2            | The return result of the corresponding MSAP-SCAN_NBORS.confirm.  0 = Success  1 = Failure: Stack in invalid state, i.e. not running  2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                           |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0xA1             | Identifier of MSAP-SCAN_NBORS.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 2            | The return result of the corresponding MSAP-SCAN_NBORS.confirm. <p> - 0 = Success<p> -  1 = Failure: Stack in invalid state, i.e. not running<p> - 2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-SCAN_NBORS.indication
 
@@ -1029,13 +1023,13 @@ The MSAP-SCAN_NBORS.indication is issued by the stack as an asynchronous reply
 for the MSAP-SCAN_NBORS.request after to scan neighbors is finished. Frame
 fields are described in the table below.
 
-| **Field Name**     | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
-|--------------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*     | 1        | 0x22             | Identifier of MSAP-SCAN_NBORS.indication primitive                                                                                                               |
-| *Frame ID*         | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format) |
-| *IndicationStatus* | 1        | 0 or 1           | 0 = No other indications queued  1 = More indications queued                                                                                                     |
-| *ScanReady*        | 1        | 1                | 1 = Scan is done                                                                                                                                                 |
-| *CRC*              | 2        | \-               | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*     | 1        | 0x22             | Identifier of MSAP-SCAN_NBORS.indication primitive
+| *Frame ID*         | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *IndicationStatus* | 1        | 0 or 1           | - 0 = No other indications queued<p> -  1 = More indications queued
+| *ScanReady*        | 1        | 1                | 1 = Scan is done
+| *CRC*              | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-GET_INSTALL_QUALITY service
 
@@ -1048,7 +1042,19 @@ Installation Quality API Application note for more information.
 This frame by the application layer to query information about neighboring
 nodes. It contains no payload.
 
-#### MSAP-GET_INSTALL_QUALITY.request
+#### MSAP-GET_INSTALL_QUALITY.confirm
+
+This confirm tells result which is always success. After application has asked
+to scan neighbors so stack code use signal to handle it. Frame fields are
+described in the table below.
+
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0xA3             | Identifier of MSAP-SCAN_NBORS.confirm.primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Quality*      | 1        | 0 - 255          | Quality reported by the node: <br> - Quality >= 127      : Good installation<br>- 127 > Quality > 63  : Average installation<br>- Quality <= 63       : Bad installation
+| *Error code*   | 1        | 0 – 4            | Associated error code:<br> - 0 = No error <br> - 1 = Error: Node has no route to sink <br> -  2 = Error: Node does not have enough good quality neighbors <br> -  4 = Error: Node has bad RSSI to next hop neighbor
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                           |
 
 ### MSAP-SINK_COST Service
 
@@ -1061,24 +1067,24 @@ forced to use other sinks with working backend communication.
 This command shall set the sink cost to new value. The higher the cost value,
 more this sink shall be avoided. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
-|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x8B             | Identifier of MSAP-ATTRIBUTE_WRITE.confirm primitive                                                                                                             |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format) |
-| *Cost*         | 1        | 0 – 254          | Value of 0 means that connection is good and no additional penalty is sent to sink usage.  Value of 254 includes maximum penalty                                 |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x8B             | Identifier of MSAP-ATTRIBUTE_WRITE.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Cost*         | 1        | 0 – 254          | Value of 0 means that connection is good and no additional penalty is sent to sink usage.  Value of 254 includes maximum penalty
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-SINK_COST_WRITE.confirm
 
 This response tells whether writing of the penalty is successful or not. Frame
 fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                         |
-|----------------|----------|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0xB8             | Identifier of MSAP-SINK_COST_WRITE.confirm primitive                                                                                                                                                                                                                                                                                                    |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                        |
-| *Result*       | 1        | 0 – 2            | The return result of the corresponding MSAP-ATTRIBUTE_WRITE.request. The different values are defined as follows:  0 = Success 1 = Failure: Device is not a sink  2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                        |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0xB8             | Identifier of MSAP-SINK_COST_WRITE.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 2            | The return result of the corresponding MSAP-ATTRIBUTE_WRITE.request. The different values are defined as follows: <p> - 0 = Success<p> - 1 = Failure: Device is not a sink<p> - 2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-SINK_COST_READ.request
 
@@ -1090,13 +1096,13 @@ usage.
 This response tells currently set additional penalty for the sink usage. Frame
 fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                         |
-|----------------|----------|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0xB9             | Identifier of MSAP-SINK_COST_READ.confirm primitive                                                                                                                                                                                                                                                                                                     |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                        |
-| *Result*       | 1        | 0 – 2            | The return result of the corresponding MSAP-ATTRIBUTE_WRITE.request. The different values are defined as follows:  0 = Success 1 = Failure: Device is not a sink  2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *Cost*         | 1        | 0 – 254          | Additional penalty set for the sink                                                                                                                                                                                                                                                                                                                     |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                        |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0xB9             | Identifier of MSAP-SINK_COST_READ.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 2            | The return result of the corresponding MSAP-ATTRIBUTE_WRITE.request. The different values are defined as follows: <p> - 0 = Success<p> - 1 = Failure: Device is not a sink<p> -  2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *Cost*         | 1        | 0 – 254          | Additional penalty set for the sink
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-SCRATCHPAD Services
 
@@ -1128,25 +1134,25 @@ Note:
 
 Frame fields are described in the table below.
 
-| **Field Name**             | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|----------------------------|----------|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*             | 1        | 0x17             | Identifier of MSAP-SCRATCHPAD_START.request primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| *Frame ID*                 | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| *ScratchpadLengthInBytes*  | 4        | 96 –             | Total number of bytes of OTAP scratchpad data  The length must be divisible by 16, or the request will fail.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| *ScratchpadSequenceNumber* | 1        | 0 – 255          | Sequence number for filtering old scratchpad contents at the nodes  The sequence number must be increment by 1 every time a new OTAP scratchpad is written. See section [Sequence Numbers](#Sequence-Numbers) for details.  The following sequence numbers are considered special:  The sequence number must be different to the sequence number of the scratchpad already present in the node  A value of 255 is means that any scratchpad from the network will override this scratchpad  A value of 0 disables OTAP for this node |
-| *CRC*                      | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x17             | Identifier of MSAP-SCRATCHPAD_START.request primitive 
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *ScratchpadLengthInBytes*  | 4  | 96 –       | Total number of bytes of OTAP scratchpad data  The length must be divisible by 16, or the request will fail
+| *ScratchpadSequenceNumber* | 1  | 0 – 255    | Sequence number for filtering old scratchpad contents at the nodes  The sequence number must be increment by 1 every time a new OTAP scratchpad is written. See section [Sequence Numbers](#Sequence-Numbers) for details.  The following sequence numbers are considered special:  The sequence number must be different to the sequence number of the scratchpad already present in the node <p>A value of 255 is means that any scratchpad from the network will override this scratchpad <p>A value of 0 disables OTAP for this node |
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-SCRATCHPAD_START.confirm
 
 The MSAP-SCRATCHPAD_START.confirm is issued by the stack in response to the
 MSAP-SCRATCHPAD_START.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x97             | Identifier of MSAP-SCRATCHPAD_START.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                   |
-| *Result*       | 1        | 0 – 4            | The return result of the corresponding MSAP-SCRATCHPAD_START.request. The different values are defined as follows:  0 = Success: Scratchpad has been erased and the node is waiting for new data to be written  1 = Failure: Stack in invalid state, i.e. not stopped 2 = Failure: Invalid ScratchPadLengthInBytes value, e.g. too big or not divisible by 16  3 = Reserved  4 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                                                                                   |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x97             | Identifier of MSAP-SCRATCHPAD_START.confirm primitive                  |
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 4            | The return result of the corresponding MSAP-SCRATCHPAD_START.request. The different values are defined as follows: <p> - 0 = Success: Scratchpad has been erased and the node is waiting for new data to be written<p> - 1 = Failure: Stack in invalid state, i.e. not stopped<p> - 2 = Failure: Invalid ScratchPadLengthInBytes value, e.g. too big or not divisible by 16<p> - 3 = Reserved<p> - 4 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-SCRATCHPAD_BLOCK.request
 
@@ -1165,26 +1171,26 @@ the following limitations:
 
 Frame fields are described in the table below.
 
-| **Field Name**  | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
-|-----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*  | 1        | 0x18             | Identifier of MSAP-SCRATCHPAD_BLOCK.request primitive                                                                                                            |
-| *Frame ID*      | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format) |
-| *StartAddress*  | 4        | 0 –              | Start address of scratchpad data  Overlapping previous data or leaving gaps is not permitted.                                                                    |
-| *NumberOfBytes* | 1        | 1 – 112          | Number of bytes of scratchpad data  Must be a multiple of four bytes.                                                                                            |
-| *Bytes*         | 1 - 112  | \-               | Bytes of scratchpad data                                                                                                                                         |
-| *CRC*           | 2        | \-               | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name**  | **Size** | **Valid Values** | **Description**
+|-----------------|----------|------------------|----------------
+| *Primitive ID*  | 1        | 0x18             | Identifier of MSAP-SCRATCHPAD_BLOCK.request primitive
+| *Frame ID*      | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *StartAddress*  | 4        | 0 –              | Start address of scratchpad data  Overlapping previous data or leaving gaps is not permitted
+| *NumberOfBytes* | 1        | 1 – 112          | Number of bytes of scratchpad data  Must be a multiple of four bytes
+| *Bytes*         | 1 - 112  | \-               | Bytes of scratchpad data
+| *CRC*           | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-SCRATCHPAD_BLOCK.confirm
 
 The MSAP-SCRATCHPAD_BLOCK.confirm is issued by the stack in response to the
 MSAP-SCRATCHPAD_BLOCK.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-|----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x98             | Identifier of MSAP-SCRATCHPAD_BLOCK.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                 |
-| *Result*       | 1        | 0 – 7            | The return result of the corresponding MSAP-SCRATCHPAD_BLOCK.request. The different values are defined as follows:  0 = Success: Block was accepted1 = Success: All data received and seems to be OK 2 = Failure: All data received but error in data 3 = Failure: Stack in invalid state, i.e. not stopped 4 = Failure: No scratchpad start request was given 5 = Failure: Start address is invalid 6 = Failure: Number of bytes is invalid 7 = Failure: Does not seem to be a valid scratchpad |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                                                 |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x98             | Identifier of MSAP-SCRATCHPAD_BLOCK.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 7            | The return result of the corresponding MSAP-SCRATCHPAD_BLOCK.request. The different values are defined as follows: <p> - 0 = Success: Block was accepted<p> - 1 = Success: All data received and seems to be OK<p> - 2 = Failure: All data received but error in data<p> - 3 = Failure: Stack in invalid state, i.e. not stopped<p> - 4 = Failure: No scratchpad start request was given<p> - 5 = Failure: Start address is invalid<p> - 6 = Failure: Number of bytes is invalid<p> - 7 = Failure: Does not seem to be a valid scratchpad
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 **Note:** Any other result except 0 (block was accepted) means that writing the
 scratchpad has been terminated and another MSAP-SCRATCHPAD_START.request must be
@@ -1219,24 +1225,24 @@ If access is denied (see section
 [cFeatureLockBits](#cFeatureLockBits))
 a block of zeros is returned. Frame fields are described in the table below.
 
-| **Field Name**                      | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                   |
-|-------------------------------------|----------|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*                      | 1        | 0x99             | Identifier of MSAP-SCRATCHPAD_STATUS.confirm primitive                                                                                                                                                                                                                                                                            |
-| *Frame ID*                          | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                  |
-| *ScratchpadLengthInBytes*           | 4        | 0 or 96 –        | Length of the OTAP scratchpad present in the node  Length is 0 if there is no scratchpad present in the node                                                                                                                                                                                                                      |
-| *ScratchpadCrc*                     | 2        | 0 – 65535        | CRC of the OTAP scratchpad present in the node  CRC is 0 if there is no scratchpad present in the node                                                                                                                                                                                                                            |
-| *ScratchpadSequenceNumber*          | 1        | 0 – 255          | Sequence number of the OTAP scratchpad present in the node  Sequence number is 0 if there is no scratchpad present in the node                                                                                                                                                                                                    |
-| *ScratchpadType*                    | 1        | 0 – 2            | Type of the OTAP scratchpad present in the node. Type can be:  0 = Blank: No valid scratchpad is present 1 = Present: A valid scratchpad is present, but has not been marked to be processed 2 = Process: A valid scratchpad is present and has been marked to be processed                                                       |
-| *ScratchpadStatus*                  | 1        | 0 – 255          | Status of the OTAP scratchpad present in the node:  255 = New: Bootloader has not yet processed the scratchpad 0 = Success: Bootloader has processed the scratchpad successfully 1 – 254 = Error: Bootloader encountered an error while processing the scratchpad  Status is 0 also if there is no scratchpad present in the node |
-| *ProcessedScratchpadLengthInBytes*  | 4        | 0 or 96 –        | Length of the OTAP scratchpad that produced the firmware currently running on the node                                                                                                                                                                                                                                            |
-| *ProcessedScratchpadCrc*            | 2        | 0 – 65535        | CRC of the OTAP scratchpad that produced the firmware currently running on the node                                                                                                                                                                                                                                               |
-| *ProcessedScratchpadSequenceNumber* | 1        | 0 – 255          | Sequence number of the OTAP scratchpad that produced the firmware currently running on the node                                                                                                                                                                                                                                   |
-| *FirmwareMemoryAreaId*              | 4        | Any              | Memory area ID of the file in the OTAP scratchpad that produced the firmware currently running on the node  OTAP scratchpad may contain multiple firmware images. This value can be used to determine which one the bootloader picked.                                                                                            |
-| *FirmwareMajorVersion*              | 1        | 0 – 255          | Major version number of currently running firmware                                                                                                                                                                                                                                                                                |
-| *FirmwareMinorVersion*              | 1        | 0 – 255          | Minor version number of currently running firmware                                                                                                                                                                                                                                                                                |
-| *FirmwareMaintenanceVersion*        | 1        | 0 – 255          | Maintenance version number of currently running firmware                                                                                                                                                                                                                                                                          |
-| *FirmwareDevelopmentVersion*        | 1        | 0 – 255          | Development version number of currently running firmware                                                                                                                                                                                                                                                                          |
-| *CRC*                               | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                  |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*                      | 1        | 0x99             | Identifier of MSAP-SCRATCHPAD_STATUS.confirm primitive
+| *Frame ID*                          | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *ScratchpadLengthInBytes*           | 4        | 0 or 96 –        | Length of the OTAP scratchpad present in the node  Length is 0 if there is no scratchpad present in the node
+| *ScratchpadCrc*                     | 2        | 0 – 65535        | CRC of the OTAP scratchpad present in the node  CRC is 0 if there is no scratchpad present in the node
+| *ScratchpadSequenceNumber*          | 1        | 0 – 255          | Sequence number of the OTAP scratchpad present in the node  Sequence number is 0 if there is no scratchpad present in the node
+| *ScratchpadType*                    | 1        | 0 – 2            | Type of the OTAP scratchpad present in the node. Type can be:<p> - 0 = Blank: No valid scratchpad is present<p> - 1 = Present: A valid scratchpad is present, but has not been marked to be processed<p> - 2 = Process: A valid scratchpad is present and has been marked to be processed
+| *ScratchpadStatus*                  | 1        | 0 – 255          | Status of the OTAP scratchpad present in the node: <p> - 255 = New: Bootloader has not yet processed the scratchpad<p> - 0 = Success: Bootloader has processed the scratchpad successfully<p> - 1 – 254 = Error: Bootloader encountered an error while processing the scratchpad <p> - Status is 0 also if there is no scratchpad present in the node
+| *ProcessedScratchpadLengthInBytes*  | 4        | 0 or 96 –        | Length of the OTAP scratchpad that produced the firmware currently running on the node
+| *ProcessedScratchpadCrc*            | 2        | 0 – 65535        | CRC of the OTAP scratchpad that produced the firmware currently running on the node
+| *ProcessedScratchpadSequenceNumber* | 1        | 0 – 255          | Sequence number of the OTAP scratchpad that produced the firmware currently running on the node
+| *FirmwareMemoryAreaId*              | 4        | Any              | Memory area ID of the file in the OTAP scratchpad that produced the firmware currently running on the node  OTAP scratchpad may contain multiple firmware images. This value can be used to determine which one the bootloader picked
+| *FirmwareMajorVersion*              | 1        | 0 – 255          | Major version number of currently running firmware
+| *FirmwareMinorVersion*              | 1        | 0 – 255          | Minor version number of currently running firmware
+| *FirmwareMaintenanceVersion*        | 1        | 0 – 255          | Maintenance version number of currently running firmware
+| *FirmwareDevelopmentVersion*        | 1        | 0 – 255          | Development version number of currently running firmware
+| *CRC*                               | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-SCRATCHPAD_UPDATE.request
 
@@ -1253,12 +1259,12 @@ The MSAP-SCRATCHPAD_UPDATE.request frame does not contain any payload.
 The MSAP-SCRATCHPAD_UPDATE.confirm is issued by the stack in response to the
 MSAP-SCRATCHPAD_UPDATE.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x9A             | Identifier of MSAP-SCRATCHPAD_UPDATE.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                                             |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                   |
-| *Result*       | 1        | 0 – 3            | The return result of the corresponding MSAP-SCRATCHPAD_UPDATE.request. The different values are defined as follows:  0 = Success: Bootloader may process the scratchpad 1 = Failure: Stack in invalid state, i.e. not stopped 2 = Failure: No valid OTAP scratchpad present  3 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                                                   |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x9A             | Identifier of MSAP-SCRATCHPAD_UPDATE.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 3            | The return result of the corresponding MSAP-SCRATCHPAD_UPDATE.request. The different values are defined as follows: <p> - 0 = Success: Bootloader may process the scratchpad<p> - 1 = Failure: Stack in invalid state, i.e. not stopped<p> - 2 = Failure: No valid OTAP scratchpad present<p> - 3 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-SCRATCHPAD_CLEAR.request
 
@@ -1272,12 +1278,12 @@ The MSAP-SCRATCHPAD_CLEAR.request frame does not contain any payload.
 The MSAP-SCRATCHPAD_CLEAR.confirm is issued by the stack in response to the
 MSAP-SCRATCHPAD_CLEAR.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                            |
-|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x9B             | Identifier of MSAP-SCRATCHPAD_CLEAR.confirm primitive                                                                                                                                                                                                                                                                                                                                                      |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                           |
-| *Result*       | 1        | 0 – 1            | The return result of the corresponding MSAP- SCRATCHPAD_CLEAR.request. The different values are defined as follows:  0 = Success: Scratchpad has been erased  1 = Failure: Stack in invalid state, i.e. not stopped  2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                           |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x9B             | Identifier of MSAP-SCRATCHPAD_CLEAR.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 1            | The return result of the corresponding MSAP- SCRATCHPAD_CLEAR.request. The different values are defined as follows: <p> - 0 = Success: Scratchpad has been erased<p> - 1 = Failure: Stack in invalid state, i.e. not stopped<p> - 2 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-NON-ROUTER LONG SLEEP (NRLS) Service
 
@@ -1312,13 +1318,13 @@ The MSAP-NON-ROUTER LONG SLEEP service includes following primitives:
 This command shall start the Wirepas Mesh stack sleep for defined time. Frame
 fields are described in the table below.
 
-| **Field Name**        | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
-|-----------------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*        | 1        | 0x40             | Identifier of MSAP-NRLS.request primitive                                                                                                                        |
-| *Frame ID*            | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format) |
-| *NRLS time*           | 4        | 0 to 0x93A80     | 0 = Starts Wirepas Mesh stack sleep for maximum value of 0x93A80 seconds (7 days)  Other values = sleep time in seconds                                          |
-| *Appconfig wait time* | 4        | 0x04 to 0x258    | 0 = App config is not awaited before going to sleep  Other values = Time used to wait for app config data is received from network before going to sleep.        |
-| *CRC*                 | 2        | \-               | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*        | 1        | 0x40             | Identifier of MSAP-NRLS.request primitive
+| *Frame ID*            | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *NRLS time*           | 4        | 0 to 0x93A80     | 0 = Starts Wirepas Mesh stack sleep for maximum value of 0x93A80 seconds (7 days)  Other values = sleep time in seconds
+| *Appconfig wait time* | 4        | 0x04 to 0x258    | 0 = App config is not awaited before going to sleep  Other values = Time used to wait for app config data is received from network before going to sleep
+| *CRC*                 | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 Wirepas Mesh stack sleep time is expressed in seconds. Sleep time starts when
 node gets disconnected from Mesh network. To disconnect from the network, some
@@ -1338,12 +1344,12 @@ information in
 The return result of the corresponding MSAP-NRLS.request is received in
 MSAP-NRLS.confirm message. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                 |
-|----------------|----------|------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0xC0             | Identifier of MSAP-NRLS.confirm primitive                                                                                                                                                                                                                                                                       |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                |
-| *Result*       | 1        | 0,1,2,5,6        | 0 = Success: NRLS started  1 = Failure: Invalid stack state  2 = Failure: Invalid stack role  5 = Failure: Invalid value  6 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0xC0             | Identifier of MSAP-NRLS.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0,1,2,5,6        | - 0 = Success: NRLS started <p> - 1 = Failure: Invalid stack state<p> - 2 = Failure: Invalid stack role<p> - 5 = Failure: Invalid value<p> - 6 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### <br>MSAP-NRLS_STOP.request
 
@@ -1354,12 +1360,12 @@ This command shall wakeup the Wirepas Mesh stack from NRLS sleep.
 The MSAP-NRLS_STOP.confirm issued by the stack as a response to the
 MSAP-NRLS_STOP.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                        |
-|----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0xC1             | Identifier of MSAP-NRLS_STOP.confirm primitive                                                                                                                                                                                                                                                                                                                                                                                         |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                       |
-| *Result*       | 1        | 0                | The return result of the corresponding MSAP-NRLS_STOP.request. The different values are defined as follows:  0 = Success: NRLS is stopped and stack is started  1 = Failure: Stack is not in sleep state (stopped) and NRLS stop cannot be done  6 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                                       |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0xC1             | Identifier of MSAP-NRLS_STOP.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0                | The return result of the corresponding MSAP-NRLS_STOP.request. The different values are defined as follows: <p> - 0 = Success: NRLS is stopped and stack is started <p> - 1 = Failure: Stack is not in sleep state (stopped) and NRLS stop cannot be done <p> - 6 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-NRLS_STATE_GET.request
 
@@ -1370,13 +1376,13 @@ This command shall query NRLS state from the Wirepas Mesh stack.
 The MSAP-NRLS_STATE_GET.response issued by the stack as a response to the
 MSAP-NRLS_STATE_GET.request. Frame fields are described in the table below.
 
-| **Field Name**    | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
-|-------------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*    | 1        | 0xC2             | Identifier of MSAP-NRLS_STATE_GET.response primitive                                                                                                             |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*    | 1        | 0xC2             | Identifier of MSAP-NRLS_STATE_GET.response primitive
 | *Frame ID*        | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format) |
-| State             | 1        | 1,2              | The return result of the corresponding MSAP-NRLS_STATE_GET.request. The different values are defined as follows:  1 = NRLS is active  2 = NRLS is not active     |
-| Remain sleep time | 4        | 0-0x93A80        | Remaining Wirepas Mesh stack sleep time in seconds. (Time is updated every 3 seconds)                                                                            |
-| *CRC*             | 2        | \-               | See section [General Frame Format](#General-Frame-Format) |
+| State             | 1        | 1,2              | The return result of the corresponding MSAP-NRLS_STATE_GET.request. The different values are defined as follows:<p> - 1 = NRLS is active<p> -  2 = NRLS is not active
+| Remain sleep time | 4        | 0-0x93A80        | Remaining Wirepas Mesh stack sleep time in seconds. (Time is updated every 3 seconds)
+| *CRC*             | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-NRLS_GOTOSLEEP_INFO.request
 
@@ -1390,12 +1396,12 @@ application callbacks during that period.
 The MSAP-NRLS_GOTOSLEEP_INFO.response issued by the stack as a response to the
 MSAP-NRLS_GOTOSLEEP.request. Frame fields are described in the table below.
 
-| **Field Name**             | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                          |
-|----------------------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID*             | 1        | 0xCC             | Identifier of MSAP-NRLS_GOTOSLEEP_INFO.response primitive                                                                                                                                                                |
-| *Frame ID*                 | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                         |
-| LatestNRLS goto sleep time | 4        | 0 to 0x93A80     | Time in seconds which was used in previous NRLS sleep request starting from application NRLS sleep request until stack enters to NRLS sleep. Time is total time used including application callbacks during that period. |
-| *CRC*                      | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                         |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID*             | 1        | 0xCC             | Identifier of MSAP-NRLS_GOTOSLEEP_INFO.response primitive
+| *Frame ID*                 | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| LatestNRLS goto sleep time | 4        | 0 to 0x93A80     | Time in seconds which was used in previous NRLS sleep request starting from application NRLS sleep request until stack enters to NRLS sleep. Time is total time used including application callbacks during that period.
+| *CRC*                      | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-MAX_MESSAGE_QUEUING Service
 
@@ -1435,13 +1441,13 @@ time for messages.
 
 Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                  |
-|----------------|----------|------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x4F             | Identifier of MSAP-MAX_QUEUE_TIME_WRITE.request primitive                                                                                                                        |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                 |
-| *Priority*     | 1        | 0 - 1            | Message priority which queuing time to be set.  0 = User traffic class 0, i.e. normal priority 1 = User traffic class 1, i.e. high priority.                                     |
-| *Time*         | 4        | 2 – 65534        | Maximum queuing time in seconds.  Read instructions in chapter 2.3.15.   Default time values after factory reset:  Normal priority: 600s = 10 min.  High priority: 300s = 5 min. |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                 |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x4F             | Identifier of MSAP-MAX_QUEUE_TIME_WRITE.request primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Priority*     | 1        | 0 - 1            | Message priority which queuing time to be set.<p> - 0 = User traffic class 0, i.e. normal priority<p> - 1 = User traffic class 1, i.e. high priority.
+| *Time*         | 4        | 2 – 65534        | Maximum queuing time in seconds.  Read instructions in chapter 2.3.15.   Default time values after factory reset: <p> - Normal priority: 600s = 10 min.<p> - High priority: 300s = 5 min.
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-MAX_QUEUE_TIME_WRITE.confirm
 
@@ -1449,12 +1455,12 @@ The MSAP-MAX_QUEUE_TIME_WRITE.confirm is issued in response to the
 MSAP-MAX_QUEUE_TIME_WRITE.request. Frame fields are described in the table
 below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
-|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0xCF             | Identifier of MSAP-MAX_QUEUE_TIME_WRITE.confirm primitive                                                                                                        |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format) |
-| *Result*       | 1        | 0, 3             | The return result of the corresponding MSAP-MAX_QUEUE_TIME_WRITE.request:  0 = Success  3 = Failure: Invalid priority or time                                    |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0xCF             | Identifier of MSAP-MAX_QUEUE_TIME_WRITE.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0, 3             | The return result of the corresponding MSAP-MAX_QUEUE_TIME_WRITE.request: <p> - 0 = Success <p> - 3 = Failure: Invalid priority or time
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-MAX_QUEUE_TIME_READ.request
 
@@ -1467,12 +1473,12 @@ maximum queuing time.
 
 Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
-|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x50             | Identifier of MSAP-MAX_QUEUE_TIME_READ.request primitive                                                                                                         |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format) |
-| *Priority*     | 1        | 0 - 1            | Message priority which queuing time to be read.  0 = User traffic class 0, i.e. normal priority 1 = User traffic class 1, i.e. high priority.                    |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x50             | Identifier of MSAP-MAX_QUEUE_TIME_READ.request primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Priority*     | 1        | 0 - 1            | Message priority which queuing time to be read. <p> - 0 = User traffic class 0, i.e. normal priority<p> - 1 = User traffic class 1, i.e. high priority
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 #### MSAP-MAX_QUEUE_TIME_READ.confirm
 
@@ -1485,13 +1491,13 @@ MSAP-MAX_QUEUE_TIME_READ.request.
 
 Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                  |
-|----------------|----------|------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0xD0             | Identifier of MSAP-MAX_QUEUE_TIME_READ.confirm primitive                                                                                                         |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format) |
-| *Result*       | 1        | 0, 3             | The return result of the corresponding MSAP-MAX_QUEUE_TIME_READ.request:  0 = Success  3 = Failure: Invalid priority                                             |
-| *Time*         | 2        | 2 - 65534        | Read value of maximum queuing time in seconds.                                                                                                                   |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0xD0             | Identifier of MSAP-MAX_QUEUE_TIME_READ.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0, 3             | The return result of the corresponding MSAP-MAX_QUEUE_TIME_READ.request:<p> - 0 = Success<p> - 3 = Failure: Invalid priority
+| *Time*         | 2        | 2 - 65534        | Read value of maximum queuing time in seconds
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP Attributes
 
@@ -1743,8 +1749,8 @@ that group receive the message. Few examples:
   
 *Table 47: mMulticastGroups examples*
 
-| **Value of the attribute**                                                                                                       | **Description**                                                                                          |
-|----------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------|
+| **Value of the attribute** | **Description** 
+|----------------------------|-----------------
 | *0x01000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000 0x00000000*  *0x00000000 0x00000000*               | Device belongs to multicast group 0x8000 0001 only                                                       |
 | *0x01000000 0x02000000 0x03000000 0x04000000 0x05000000 0x06000000 0x07000000 0x08000000*  *0x09000000 0x0A000000*               | Device belongs to multicast groups 0x8000 0001 – 0x8000 000A.                                            |
 | *0x0A000000 0x09000000 0x08000000 0x07000000 0x06000000 0x05000000 0x04000000 0x03000000 0x02000000 0x01000000*                  | Device belongs to multicast groups 0x8000 0001 – 0x8000 000A. Values can be in any order                 |
@@ -1809,34 +1815,33 @@ The CSAP-FACTORY_RESET.request issued by the application layer when the
 persistent attributes should be cleared. Frame fields are described in the table
 below.
 
-| **Field Name** | **Size** | **Valid Values**                      | **Description**                                                                                                                                                  |
-|----------------|----------|---------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x16                                  | Identifier of CSAP-FACTORY_RESET.request primitive                                                                                                               |
-| *Frame ID*     | 1        | 0 – 255                               | See section [General Frame Format](#General-Frame-Format) |
-| *ResetKey*     | 4        | 0x74 0x49 0x6F 0x44 (“DoIt” in ASCII) | Special key value used to verify that user wants to clear persistent values.                                                                                     |
-| *CRC*          | 2        | \-                                    | See section [General Frame Format](#General-Frame-Format) |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x16                                  | Identifier of CSAP-FACTORY_RESET.request primitive 
+| *Frame ID*     | 1        | 0 – 255                               | See section [General Frame Format](#General-Frame-Format)
+| *ResetKey*     | 4        | 0x74 0x49 0x6F 0x44 (“DoIt” in ASCII) | Special key value used to verify that user wants to clear persistent values
+| *CRC*          | 2        | \-                                    | See section [General Frame Format](#General-Frame-Format)
 
 #### CSAP-FACTORY_RESET.confirm
 
 The CSAP-FACTORY_RESET.confirm issued by the stack as a response to the
 CSAP-FACTORY_RESET.request. Frame fields are described in the table below.
 
-| **Field Name** | **Size** | **Valid Values** | **Description**                                                                                                                                                                                                                                                                                                                                                                                                                |
-|----------------|----------|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| *Primitive ID* | 1        | 0x96             | Identifier of CSAP-FACTORY_RESET.confirm primitive                                                                                                                                                                                                                                                                                                                                                                             |
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                               |
-| *Result*       | 1        | 0 – 2            | The return result of the corresponding CSAP-FACTORY_RESET.request. The different values are defined as follows:  0 = Success 1 = Failure: Stack in invalid state to clear attributes 2 = Failure: Attempted to use an invalid reset key  3 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits)) |
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                                                                                                                               |
+| **Field Name** | **Size** | **Valid Values** | **Description**
+|----------------|----------|------------------|----------------
+| *Primitive ID* | 1        | 0x96             | Identifier of CSAP-FACTORY_RESET.confirm primitive
+| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
+| *Result*       | 1        | 0 – 2            | The return result of the corresponding CSAP-FACTORY_RESET.request. The different values are defined as follows:<p> - 0 = Success<p> - 1 = Failure: Stack in invalid state to clear attributes<p> - 2 = Failure: Attempted to use an invalid reset key<p> - 3 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### CSAP Attributes
 
 The CSAP attributes are specified in Table 50.
 
-  
 *Table 50. CSAP attributes*
 
-| **Attribute name**                                                                                                                                                                          | **Attribute ID** | **Type** | **Size** |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------|----------|----------|
+| **Attribute name**   | **Attribute ID** | **Type** | **Size** |
+|----------------------|------------------|----------|----------|
 | [cNodeAddress](#WirepasMeshDual-MCUAPIReferenceManual-_cNodeAddress)                 | 1                | R/W      | 4        |
 | [cNetworkAddress](#WirepasMeshDual-MCUAPIReferenceManual-_cNetworkAddress)           | 2                | R/W      | 3        |
 | [cNetworkChannel](#WirepasMeshDual-MCUAPIReferenceManual-_cNetworkChannel)           | 3                | R/W      | 1        |
@@ -1925,23 +1930,23 @@ Attribute *cNodeRole* sets the node role. A valid roles are listed in Table 51.
   
 *Table 51. Node roles*
 
-| **Value**   | **Base role**                                          | **Description**                                                                                                                                                                                                                                                                                             |
-|-------------|--------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 0x00        | Reserved                                               |                                                                                                                                                                                                                                                                                                             |
-| 0x01        | Sink                                                   | A device that is usually connected to a server backbone. All data packets sent to the *AnySink* address end up in here. Similarly, all diagnostic data generated by the network itself is transmitted to a sink device.                                                                                     |
-| 0x02        | Router Node                                            | A device that is fixed to be capable of routing traffic for other nodes in time slotted mode.                                                                                                                                                                                                               |
-| 0x03        | non-router node                                        | A device that is part of the network but does not route traffic of other nodes in time slotted mode. Mainly used in extremely low-power devices.                                                                                                                                                            |
-| 0x04 – 0x0F | Reserved                                               |                                                                                                                                                                                                                                                                                                             |
-| 0x11        | CSMA-CA mode Sink                                      | When this is enabled, the sink keeps the receiver enabled all the time when it is not transmitting. Then, the latency on sending data to sink is way faster with the expense on higher power consumption. Intended to be used only with mains-powered devices.                                              |
-| 0x12        | CSMA-CA mode Router node                               | When this is enabled, the router node keeps the receiver enabled all the time when it is not transmitting. Then, the latency on sending data to router node is way faster with the expense on higher power consumption. Intended to be used only with mains-powered devices.                                |
-| 0x13        | CSMA-CA mode non-router node                           | When this is enabled, the non-router node keeps the receiver enabled all the time when it is not transmitting. Then, the latency on sending data to router node is way faster with the expense on higher power consumption. Intended to be used only with mains-powered devices.                            |
-| 0x14 – 0x81 | Reserved                                               |                                                                                                                                                                                                                                                                                                             |
-| 0x82        | Router node with automatic role selection              | A node that is boots up as Router node and capable of routing traffic for other nodes in time slotted mode. Router node is evaluating its role to ensure that there are not too many routing nodes within the radio range. It is highly recommended to enable this in dense and large networks.             |
-| 0x83        | Non-router node with automatic role selection          | A node that is boots up as non-router node and without capable of routing traffic for other nodes in time slotted mode. Node is evaluating its role to ensure that there is sufficient amount of routing nodes within the radio range. It is highly recommended to enable this in dense and large networks. |
-| 0x83-0x91   | Reserved                                               |                                                                                                                                                                                                                                                                                                             |
-| 0x92        | CSMA-CA mode Router node with automatic role selection | A node that is boots up as Router node and capable of routing traffic for other nodes in CSMA-CA mode. Router node is evaluating its role to ensure that there are not too many routing nodes within the radio range. It is highly recommended to enable this in dense and large networks.                  |
-| 0x93        | CSMA-CA Non-router node with automatic role selection  | A node that is boots up as non-router node and without capable of routing traffic for other nodes in CSMA-CA mode. Node is evaluating its role to ensure that there is sufficient amount of routing nodes within the radio range. It is highly recommended to enable this in dense and large networks.      |
-| 0x94-0xFF   | reserved                                               |                                                                                                                                                                                                                                                                                                             |
+| **Value**   | **Base role**  | **Description** 
+|-------------|----------------|----------------
+| 0x00        | Reserved       |
+| 0x01        | Sink           | A device that is usually connected to a server backbone. All data packets sent to the *AnySink* address end up in here. Similarly, all diagnostic data generated by the network itself is transmitted to a sink device
+| 0x02        | Router Node    | A device that is fixed to be capable of routing traffic for other nodes in time slotted mode
+| 0x03        | Non-router node| A device that is part of the network but does not route traffic of other nodes in time slotted mode. Mainly used in extremely low-power devices
+| 0x04 – 0x0F | Reserved       |
+| 0x11        | CSMA-CA mode Sink  | When this is enabled, the sink keeps the receiver enabled all the time when it is not transmitting. Then, the latency on sending data to sink is way faster with the expense on higher power consumption. Intended to be used only with mains-powered devices
+| 0x12        | CSMA-CA mode Router node | When this is enabled, the router node keeps the receiver enabled all the time when it is not transmitting. Then, the latency on sending data to router node is way faster with the expense on higher power consumption. Intended to be used only with mains-powered devices
+| 0x13        | CSMA-CA mode non-router node | When this is enabled, the non-router node keeps the receiver enabled all the time when it is not transmitting. Then, the latency on sending data to router node is way faster with the expense on higher power consumption. Intended to be used only with mains-powered devices
+| 0x14 – 0x81 | Reserved        |
+| 0x82        | Router node with automatic role selection  | A node that is boots up as Router node and capable of routing traffic for other nodes in time slotted mode. Router node is evaluating its role to ensure that there are not too many routing nodes within the radio range. It is highly recommended to enable this in dense and large networks
+| 0x83        | Non-router node with automatic role selection | A node that is boots up as non-router node and without capable of routing traffic for other nodes in time slotted mode. Node is evaluating its role to ensure that there is sufficient amount of routing nodes within the radio range. It is highly recommended to enable this in dense and large networks
+| 0x83-0x91   | Reserved        |
+| 0x92        | CSMA-CA mode Router node with automatic role selection | A node that is boots up as Router node and capable of routing traffic for other nodes in CSMA-CA mode. Router node is evaluating its role to ensure that there are not too many routing nodes within the radio range. It is highly recommended to enable this in dense and large networks
+| 0x93        | CSMA-CA Non-router node with automatic role selection  | A node that is boots up as non-router node and without capable of routing traffic for other nodes in CSMA-CA mode. Node is evaluating its role to ensure that there is sufficient amount of routing nodes within the radio range. It is highly recommended to enable this in dense and large networks
+| 0x94-0xFF   | reserved        |
 
 #### cMTU
 
@@ -1967,9 +1972,7 @@ payload size in octets.
 The PDUs processed by the stack are stored in a buffer. There is a maximum limit
 for the number of PDUs that can fit in the buffer, as indicated by the
 *cPDUBufferSize* attribute. See sections
-[mPDUBufferUsage](#mPDUBufferUsage)
-and
-[mPDUBufferCapacity](#mPDUBufferCapacity)
+[mPDUBufferUsage](#mPDUBufferUsage) and [mPDUBufferCapacity](#mPDUBufferCapacity)
 for information about current PDU buffer usage.
 
 #### cScratchpadSequence
@@ -2329,8 +2332,8 @@ explained in Table 72.
   
 *Table 72. Required node configuration*
 
-| **Service**                                            | **See section**                                                                                                                                                                  | **Description**                                                                                                                                   |
-|--------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Service** | **See section** | **Description**  
+|-------------|-----------------|------------------
 | *CSAP_ATTRIBUTE_WRITE / cNodeAddress*                  | [cNodeAddress](#cNodeAddress)                                             | A unique device identifier must be set. This is used to distinguish nodes from each other on a network.                                           |
 | *CSAP_ATTRIBUTE_WRITE / cNetworkAddress*               | [cNetworkAddress](#cNetworkAddress)                                       | Device network to join. Each device on a network must share the network address.                                                                  |
 | *CSAP_ATTRIBUTE_WRITE / cNetworkChannel*               | [cNetworkChannel](#cNetworkChannel)                                       | One channel in allocated specially for network operations and must be same for each device on a network.                                          |
@@ -2351,50 +2354,50 @@ This Annex gives an example CRC implementation and test vectors.
 // lut table size 512B (256 * 16bit)  
 static const uint16_t crc_ccitt_lut[] =  
 {  
-    0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, \\  
-    0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef, \\  
-    0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6, \\  
-    0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de, \\  
-    0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485, \\  
-    0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d, \\  
-    0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4, \\  
-    0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc, \\  
-    0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823, \\  
-    0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b, \\  
-    0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12, \\  
-    0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a, \\  
-    0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41, \\  
-    0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49, \\  
-    0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70, \\  
-    0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78, \\  
-    0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f, \\  
-    0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067, \\  
-    0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e, \\  
-    0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256, \\  
-    0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d, \\  
-    0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405, \\  
-    0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c, \\  
-    0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634, \\  
-    0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab, \\  
-    0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3, \\  
-    0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a, \\  
-    0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92, \\  
-    0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9, \\  
-    0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1, \\  
-    0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8, \\  
-    0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0 \\  
+    0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, \\
+    0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef, \\
+    0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6, \\
+    0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de, \\
+    0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485, \\
+    0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d, \\
+    0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4, \\
+    0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc, \\
+    0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823, \\
+    0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b, \\
+    0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12, \\
+    0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a, \\
+    0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41, \\
+    0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49, \\
+    0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70, \\
+    0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78, \\
+    0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f, \\
+    0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067, \\
+    0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e, \\
+    0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256, \\
+    0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d, \\
+    0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405, \\
+    0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c, \\
+    0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634, \\
+    0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab, \\
+    0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3, \\
+    0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a, \\
+    0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92, \\
+    0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9, \\
+    0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1, \\
+    0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8, \\
+    0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0 \\
 };
 
-uint16_t Crc_fromBuffer(uint8_t * buf, uint32_t len)  
+uint16_t Crc_fromBuffer(uint8_t * buf, uint32_t len)
 {
-    uint16_t crc = 0xffff;  
-    uint8_t index;  
-    for (uint32_t i = 0; i < len; i++)  
+    uint16_t crc = 0xffff;
+    uint8_t index;
+    for (uint32_t i = 0; i < len; i++)
     {
-        index = buf[i] ^ (crc >> 8);  
-        crc = crc_ccitt_lut[index] ^ (crc << 8);  
-    }  
-    return crc;  
+        index = buf[i] ^ (crc >> 8);
+        crc = crc_ccitt_lut[index] ^ (crc << 8);
+    }
+    return crc;
 }
 ```
 
@@ -2419,7 +2422,7 @@ uint16_t Crc_fromBuffer(uint8_t * buf, uint32_t len)
 
 # Revision History
 
-| **Date**     | **Version** | **Notes**                                                                                                                                                                                                                          |
-|--------------|-------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 30 Jul 2020  | v5.0A       | Initial Version Online                                                                                                                                                                                                             |
-| 20 Nov 2020  | v5.0.2      | Removed TSAP as not supported in Wirepas Mesh v5 Clarified [UART Configuration](#UART-Configuration) Removed IPv6 AppConfig |
+| **Date**     | **Version** | **Notes** 
+|--------------|-------------|----------
+| 30 Jul 2020  | v5.0A       | Initial Version Online
+| 20 Nov 2020  | v5.0.2      | Removed TSAP as not supported in Wirepas Mesh v5 Clarified [UART Configuration](#UART-Configuration) Removed IPv6 AppConfig
