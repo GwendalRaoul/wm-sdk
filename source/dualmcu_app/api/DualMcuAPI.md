@@ -798,7 +798,7 @@ below.
 |----------------|----------|------------------|----------------
 | *Primitive ID* | 1        | 0xBA             | Identifier of MSAP-APP_CONFIG_DATA_WRITE.confirm primitive
 | *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
-| *Result*       | 1        | 0 – 4            | The return result of the corresponding MSAP-APP_CONFIG_DATA_WRITE.request. The different values are defined as follows: <br> - 0 = Success: New configuration written to sink's non-volatile memory and scheduled for transmission <br> - 1 = Failure: The node is not a sink  <br> - 2 = Failure: Invalid DiagnosticDataInterval value <br> - 3 = Failure: Invalid SequenceNumber value  <br> - 4 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
+| *Result*       | 1        | 0 – 4            | The return result of the corresponding MSAP-APP_CONFIG_DATA_WRITE.request. The different values are defined as follows: <p> - 0 = Success: New configuration written to sink's non-volatile memory and scheduled for transmission <p> - 1 = Failure: The node is not a sink  <p> - 2 = Failure: Invalid DiagnosticDataInterval value <p> - 3 = Failure: Invalid SequenceNumber value  <p> - 4 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
 | *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
 ### MSAP-APP_CONFIG_DATA_READ Service
@@ -1042,19 +1042,7 @@ Installation Quality API Application note for more information.
 This frame by the application layer to query information about neighboring
 nodes. It contains no payload.
 
-#### MSAP-GET_INSTALL_QUALITY.confirm
-
-This confirm tells result which is always success. After application has asked
-to scan neighbors so stack code use signal to handle it. Frame fields are
-described in the table below.
-
-| **Field Name** | **Size** | **Valid Values** | **Description**
-|----------------|----------|------------------|----------------
-| *Primitive ID* | 1        | 0xA3             | Identifier of MSAP-SCAN_NBORS.confirm.primitive
-| *Frame ID*     | 1        | 0 – 255          | See section [General Frame Format](#General-Frame-Format)
-| *Quality*      | 1        | 0 - 255          | Quality reported by the node: <br> - Quality >= 127      : Good installation<br>- 127 > Quality > 63  : Average installation<br>- Quality <= 63       : Bad installation
-| *Error code*   | 1        | 0 – 4            | Associated error code:<br> - 0 = No error <br> - 1 = Error: Node has no route to sink <br> -  2 = Error: Node does not have enough good quality neighbors <br> -  4 = Error: Node has bad RSSI to next hop neighbor
-| *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)                                                                                                                                                           |
+#### MSAP-GET_INSTALL_QUALITY.request
 
 ### MSAP-SINK_COST Service
 
@@ -1351,7 +1339,7 @@ MSAP-NRLS.confirm message. Frame fields are described in the table below.
 | *Result*       | 1        | 0,1,2,5,6        | - 0 = Success: NRLS started <p> - 1 = Failure: Invalid stack state<p> - 2 = Failure: Invalid stack role<p> - 5 = Failure: Invalid value<p> - 6 = Failure: Access denied (see section [cFeatureLockBits](#cFeatureLockBits))
 | *CRC*          | 2        | \-               | See section [General Frame Format](#General-Frame-Format)
 
-#### <br>MSAP-NRLS_STOP.request
+#### MSAP-NRLS_STOP.request
 
 This command shall wakeup the Wirepas Mesh stack from NRLS sleep.
 
